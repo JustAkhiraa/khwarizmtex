@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KhwarizmTeX, démo</title>
+  <meta name="description" content="Rendu de formules LaTeX en HTML/CSS et MathML, sans dépendance.">
+  <link rel="stylesheet" href="../dist/khwarizm.css" data-khwarizm>
+  <link rel="stylesheet" href="demo.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">∑</span>
+      <div>
+        <h1>KhwarizmTeX</h1>
+        <p class="tagline">Formules LaTeX en HTML/CSS soigné et en MathML. Sans dépendance, synchrone.</p>
+      </div>
+    </div>
+    <button type="button" class="theme" id="theme" aria-label="Changer de thème">
+      <span class="theme-light">Thème clair</span><span class="theme-dark">Thème sombre</span>
+    </button>
+  </header>
+
+  <main>
+    <section class="editor" aria-labelledby="editor-title">
+      <div class="panel">
+        <div class="panel-head">
+          <h2 id="editor-title">Essayer</h2>
+          <span class="timing" id="timing" aria-live="polite"></span>
+        </div>
+        <label class="sr-only" for="source">Source LaTeX</label>
+        <textarea id="source" spellcheck="false" autocomplete="off" autocapitalize="off" rows="4"></textarea>
+        <div class="controls">
+          <label class="switch"><input type="checkbox" id="display" checked> Formule centrée</label>
+          <label class="switch"><input type="checkbox" id="copy" checked> Bouton copier</label>
+          <label class="width">Largeur de l’aperçu
+            <input type="range" id="width" min="220" max="900" step="10" value="900">
+            <output id="width-value">100 %</output>
+          </label>
+        </div>
+      </div>
+
+      <div class="outputs">
+        <figure class="panel output">
+          <figcaption>Rendu HTML/CSS</figcaption>
+          <div class="stage" id="stage-html"></div>
+        </figure>
+        <figure class="panel output">
+          <figcaption>MathML natif du navigateur</figcaption>
+          <div class="stage" id="stage-mathml"></div>
+        </figure>
+      </div>
+
+      <div class="panel diagnostics" id="diagnostics" hidden>
+        <h3>Erreurs isolées</h3>
+        <ul id="error-list"></ul>
+      </div>
+    </section>
+
+    <section aria-labelledby="gallery-title">
+      <h2 id="gallery-title">Exemples</h2>
+      <p class="hint">Un clic charge l’exemple dans l’éditeur.</p>
+      <div class="gallery" id="gallery"></div>
+    </section>
+
+    <section class="panel prose" aria-labelledby="inline-title">
+      <h2 id="inline-title">Dans un texte</h2>
+      <div id="prose">
+        <p>Pour une suite géométrique de raison $q \neq 1$, la somme des $n$ premiers termes vaut
+          $S_n = u_0 \frac{1 - q^n}{1 - q}$. Le discriminant $\Delta = b^2 - 4ac$ décide du nombre de racines,
+          données par</p>
+        <p>$$x_{1,2} = \frac{-b \pm \sqrt{\Delta}}{2a}.$$</p>
+        <p>Une erreur reste discrète : $\frac{1}{x + \foo$ (survoler la partie soulignée). Et un prix
+          comme 5 $ reste du texte.</p>
+      </div>
+    </section>
+
+    <section class="panel prose" aria-labelledby="element-title">
+      <h2 id="element-title">Élément &lt;khwarizm-math&gt;</h2>
+      <p>La loi normale centrée réduite : <khwarizm-math>\varphi(x) = \frac{1}{\sqrt{2\pi}} e^{-x^2/2}</khwarizm-math>.</p>
+      <khwarizm-math display copy>\int_{-\infty}^{+\infty} e^{-x^2}\,dx = \sqrt{\pi}</khwarizm-math>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Survoler une formule fait apparaître le bouton copier. Sélectionner du texte puis copier donne la source LaTeX des formules.</p>
+  </footer>
+
+  <script src="../dist/khwarizmtex.global.js"></script>
+  <script src="demo.js"></script>
+</body>
+</html>
