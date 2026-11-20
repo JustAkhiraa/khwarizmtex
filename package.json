@@ -1,7 +1,7 @@
 {
   "name": "khwarizmtex",
   "version": "0.1.0",
-  "description": "Moteur de rendu mathématique LaTeX : HTML/CSS soigné et MathML Core, synchrone, sans dépendance.",
+  "description": "Rendu de formules mathématiques soigné, rapide et sans dépendance, pour le serveur comme pour le navigateur.",
   "type": "module",
   "sideEffects": [
     "*.css"
@@ -35,10 +35,11 @@
     "bench": "node scripts/bench.mjs"
   },
   "keywords": [
-    "latex",
     "math",
-    "mathml",
-    "typesetting",
+    "formules",
+    "mathematiques",
+    "rendu",
+    "accessibilite",
     "ssr"
   ],
   "dependencies": {},

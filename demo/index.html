@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>KhwarizmTeX, démo</title>
-  <meta name="description" content="Rendu de formules LaTeX en HTML/CSS et MathML, sans dépendance.">
+  <meta name="description" content="Rendu de formules mathématiques soigné, rapide et sans dépendance.">
   <link rel="stylesheet" href="../dist/khwarizm.css" data-khwarizm>
   <link rel="stylesheet" href="demo.css">
 </head>
@@ -14,7 +14,7 @@
       <span class="logo" aria-hidden="true">∑</span>
       <div>
         <h1>KhwarizmTeX</h1>
-        <p class="tagline">Formules LaTeX en HTML/CSS soigné et en MathML. Sans dépendance, synchrone.</p>
+        <p class="tagline">Rendu de formules mathématiques soigné, rapide et sans dépendance.</p>
       </div>
     </div>
     <button type="button" class="theme" id="theme" aria-label="Changer de thème">
@@ -29,7 +29,7 @@
           <h2 id="editor-title">Essayer</h2>
           <span class="timing" id="timing" aria-live="polite"></span>
         </div>
-        <label class="sr-only" for="source">Source LaTeX</label>
+        <label class="sr-only" for="source">Source de la formule</label>
         <textarea id="source" spellcheck="false" autocomplete="off" autocapitalize="off" rows="4"></textarea>
         <div class="controls">
           <label class="switch"><input type="checkbox" id="display" checked> Formule centrée</label>
@@ -47,7 +47,7 @@
           <div class="stage" id="stage-html"></div>
         </figure>
         <figure class="panel output">
-          <figcaption>MathML natif du navigateur</figcaption>
+          <figcaption>Rendu natif du navigateur</figcaption>
           <div class="stage" id="stage-mathml"></div>
         </figure>
       </div>
@@ -84,7 +84,7 @@
   </main>
 
   <footer class="foot">
-    <p>Survoler une formule fait apparaître le bouton copier. Sélectionner du texte puis copier donne la source LaTeX des formules.</p>
+    <p>Survoler une formule fait apparaître le bouton copier. Sélectionner du texte puis copier donne la source des formules.</p>
   </footer>
 
   <script src="../dist/khwarizmtex.global.js"></script>

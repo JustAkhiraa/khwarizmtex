@@ -1,12 +1,12 @@
 # KhwarizmTeX
 
-Moteur de rendu de formules LaTeX, en HTML/CSS et en MathML Core.
+Un moteur tout neuf de rendu de formules mathématiques : soigné, rapide et sans dépendance.
 
 Synchrone, sans dépendance à l'exécution, utilisable côté serveur comme dans le navigateur. Rien n'est chargé depuis Internet : ni script, ni police, ni icône.
 
 ## Démarrer
 
-Ouvrir `demo/index.html` d'un double-clic. La démo montre un éditeur en direct, le rendu HTML à côté du MathML natif du navigateur, et une galerie d'exemples.
+Ouvrir `demo/index.html` d'un double-clic. La démo montre un éditeur en direct, le rendu HTML/CSS à côté du rendu natif du navigateur, et une galerie d'exemples.
 
 Pour refaire la bibliothèque après une modification :
 
@@ -45,7 +45,7 @@ const html = renderToString('e^{i\\pi} + 1 = 0', { displayMode: true });
 <khwarizm-math display copy>\sum_{k=1}^{n} k = \frac{n(n+1)}{2}</khwarizm-math>
 ```
 
-Attributs : `display` (formule centrée), `copy` (bouton copier), `latex` (source, prioritaire sur le texte). Le fichier autonome déclare l'élément et ajoute la feuille de style tout seul.
+Attributs : `display` (formule centrée), `copy` (bouton copier), `latex` (source de la formule, prioritaire sur le texte). Le fichier autonome déclare l'élément et ajoute la feuille de style tout seul.
 
 ### Toute une page
 
@@ -61,14 +61,14 @@ Remplace `$...$`, `$$...$$`, `\(...\)` et `\[...\]`. Un prix comme « 5 $ » res
 | Option | Par défaut | Rôle |
 |---|---|---|
 | `displayMode` | `false` | Formule centrée sur sa ligne |
-| `output` | `'htmlAndMathml'` | `'html'`, `'mathml'` ou les deux (MathML caché, pour les lecteurs d'écran) |
+| `output` | `'htmlAndMathml'` | `'html'`, `'mathml'` (balisage mathématique natif) ou les deux (le balisage natif reste caché, pour les lecteurs d'écran) |
 | `throwOnError` | `false` | Lever une `KhwarizmError` au lieu d'isoler l'erreur |
 | `macros` | aucune | `{ '\\vect': '\\overrightarrow{#1}' }` |
 | `maxExpand` | `1000` | Expansions de macros au plus, par formule |
 | `maxDepth` | `128` | Profondeur d'imbrication au plus |
 | `maxSize` | `20` | Taille maximale d'une espace explicite, en em |
 | `lineBreaks` | `true` | Retour à la ligne permis après `=`, `+`, `−`, `,` |
-| `copyButton` | `false` | Petit bouton « copier le LaTeX » au survol |
+| `copyButton` | `false` | Petit bouton « copier la formule » au survol |
 | `className` | aucune | Classe ajoutée à l'élément racine |
 
 ## Apparence
@@ -104,7 +104,7 @@ Les formules prennent la couleur du texte (`currentColor`) : le thème sombre fo
 
 Une formule fautive s'affiche quand même. La partie en cause est soulignée d'une vague discrète ; sa cause s'affiche au survol, en français (« Commande inconnue : \foo », « Accolade « { » jamais fermée. »). Un argument manquant laisse une petite case en pointillés.
 
-`parse(latex)` renvoie l'arbre et la liste des erreurs, avec leur position dans la source.
+`parse(source)` renvoie l'arbre et la liste des erreurs, avec leur position dans la source.
 
 ## Sécurité
 
@@ -135,9 +135,9 @@ src/
 ├── lexer/       Analyse lexicale, caractère par caractère
 ├── macros/      Expansion des macros, garde-fou maxExpand
 ├── parser/      Parseur récursif descendant, commandes, environnements
-├── ast/         Types de l'arbre, classes d'atomes et espacements de TeX
+├── ast/         Types de l'arbre, classes d'atomes et espacements
 ├── symbols/     Tables de symboles, alphabets mathématiques Unicode
-├── renderers/   html.ts, mathml.ts, délimiteurs SVG, mesures
+├── renderers/   rendu HTML/CSS, balisage natif, délimiteurs SVG, mesures
 ├── styles/      khwarizm.css
 ├── plugins/     autoRender, <khwarizm-math>, copier, plugins
 └── index.ts     API publique
@@ -157,8 +157,8 @@ npm run bench
 
 Mesures du 20 novembre 2026 sur ce Mac (Node 26) :
 
-- 90 tests, tous verts (lexer, parseur, récupération d'erreurs, macros, sécurité, rendus HTML et MathML, plugins, feuille de style) ;
-- environ 52 µs par formule, HTML et MathML ensemble ;
+- 90 tests, tous verts (lexer, parseur, récupération d'erreurs, macros, sécurité, les deux rendus, plugins, feuille de style) ;
+- environ 52 µs par formule, les deux rendus ensemble ;
 - fichier autonome : 30 Ko compressé ; feuille de style : 3,4 Ko compressée ;
 - rendu comparé à l'œil dans les moteurs de Chrome et de Safari : positions identiques au sous-pixel près.
 
