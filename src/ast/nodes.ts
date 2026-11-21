@@ -200,6 +200,41 @@ export interface EncloseNode {
   body: MathNode;
 }
 
+/** Une étiquette d'équation (`\label{...}`), sans représentation visuelle. */
+export interface LabelNode {
+  type: 'label';
+  name: string;
+  loc?: Loc;
+}
+
+export interface LinkNode {
+  type: 'link';
+  href: string;
+  body: MathNode;
+}
+
+export interface NoTagNode {
+  type: 'notag';
+}
+
+/** Une référence interne (`\ref` ou `\eqref`). */
+export interface ReferenceNode {
+  type: 'ref';
+  /** Texte résolu, ou « ?? » si l'étiquette n'est pas connue. */
+  text: string;
+  /** Cible du lien HTML, absente pour une référence non résolue. */
+  target?: string;
+  resolved: boolean;
+}
+
+/** Numéro affiché par `\tag{...}` ou ajouté automatiquement à une équation étiquetée. */
+export interface TagNode {
+  type: 'tag';
+  body: MathNode;
+  /** `\tag*` supprime les parenthèses automatiques. */
+  starred: boolean;
+}
+
 /** \\ hors d'un tableau : retour à la ligne forcé. */
 export interface NewlineNode {
   type: 'newline';
@@ -235,6 +270,11 @@ export type MathNode =
   | ColorNode
   | PhantomNode
   | EncloseNode
+  | LabelNode
+  | ReferenceNode
+  | TagNode
+  | LinkNode
+  | NoTagNode
   | NewlineNode
   | ErrorNode;
 
@@ -282,6 +322,8 @@ export function childrenOf(node: MathNode): MathNode[] {
     case 'accent':
     case 'phantom':
     case 'enclose':
+    case 'tag':
+    case 'link':
       return [node.body];
     case 'underover': {
       const out: MathNode[] = [node.base];

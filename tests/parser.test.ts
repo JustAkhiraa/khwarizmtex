@@ -97,6 +97,14 @@ describe('parseur', () => {
     expect(ast('\\hspace{1.5em}')[0]).toEqual({ type: 'space', width: 1.5 });
     expect(ast('\\kern3mu')[0]).toEqual({ type: 'space', width: 3 / 18 });
   });
+
+  it('conserve les étiquettes, tags et références dans l’arbre', () => {
+    const nodes = ast('x=1\\tag{A}\\label{eq:x}');
+    expect(nodes).toContainEqual({ type: 'tag', body: { type: 'group', body: [{ type: 'symbol', role: 'mi', cls: 'ord', text: 'A', loc: { start: 8, end: 9 } }] }, starred: false });
+    expect(nodes.find((node) => node.type === 'label')).toMatchObject({ type: 'label', name: 'eq:x' });
+    expect(ast('x\\tag*{A}')[1]).toMatchObject({ type: 'tag', starred: true });
+    expect(parse('\\eqref{eq:x}', { references: { 'eq:x': 'A' } }).ast[0]).toMatchObject({ type: 'ref', text: '(A)', target: 'khw-eq-eq%3Ax', resolved: true });
+  });
 });
 
 describe('récupération après erreur', () => {
@@ -154,5 +162,9 @@ describe('récupération après erreur', () => {
 
   it('lève une KhwarizmError avec throwOnError', () => {
     expect(() => parse('\\oops', { throwOnError: true })).toThrow(/Commande inconnue/);
+  });
+
+  it('signale une référence inconnue sans interrompre le rendu', () => {
+    expect(parse('\\ref{absente}').errors[0]?.message).toBe('Référence inconnue : absente.');
   });
 });

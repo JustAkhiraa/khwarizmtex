@@ -55,4 +55,9 @@ describe('rendu MathML', () => {
     expect(both).toContain('<span class="khw-html" aria-hidden="true">');
     expect(both).toContain('<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline" class="khw-mathml">');
   });
+
+  it('conserve le tag dans la représentation sémantique', () => {
+    expect(mathml('x\\tag{1}')).toContain('<mo fence="true" stretchy="false">(</mo><mn>1</mn><mo fence="true" stretchy="false">)</mo>');
+    expect(mathml('x\\tag*{A}')).toContain('<mi>A</mi>');
+  });
 });

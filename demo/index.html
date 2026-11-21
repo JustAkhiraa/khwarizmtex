@@ -6,6 +6,7 @@
   <title>KhwarizmTeX, démo</title>
   <meta name="description" content="Rendu de formules mathématiques soigné, rapide et sans dépendance.">
   <link rel="stylesheet" href="../dist/khwarizm.css" data-khwarizm>
+  <link rel="stylesheet" href="../dist/khwarizm-fonts.css">
   <link rel="stylesheet" href="demo.css">
 </head>
 <body>
@@ -23,6 +24,11 @@
   </header>
 
   <main>
+    <section class="panel startup" id="startup" role="status" aria-live="polite">
+      <h2>Démarrage de la démo</h2>
+      <p id="startup-message">Si ce message reste affiché, les scripts ne se sont pas chargés. Depuis le dossier du projet, lancez <code>npm run demo</code>, puis ouvrez l’adresse locale indiquée.</p>
+      <noscript><p>JavaScript est désactivé. Cette démo interactive en a besoin. Dans Safari : Réglages → Sécurité → Activer JavaScript.</p></noscript>
+    </section>
     <section class="editor" aria-labelledby="editor-title">
       <div class="panel">
         <div class="panel-head">
@@ -87,6 +93,19 @@
     <p>Survoler une formule fait apparaître le bouton copier. Sélectionner du texte puis copier donne la source des formules.</p>
   </footer>
 
+  <script>
+    // Installé avant les fichiers externes : explique aussi un chargement refusé.
+    window.addEventListener('error', function (event) {
+      var status = document.getElementById('startup');
+      if (status.hidden) return;
+      var message = document.getElementById('startup-message');
+      var target = event.target;
+      var detail = target && target.tagName === 'SCRIPT'
+        ? 'Un fichier JavaScript n’a pas pu être chargé.'
+        : 'Erreur de démarrage : ' + (event.message || 'cause inconnue');
+      message.textContent = detail + ' Lancez npm run demo depuis le dossier du projet et ouvrez l’adresse locale indiquée. Si le problème persiste, transmettez ce message.';
+    }, true);
+  </script>
   <script src="../dist/khwarizmtex.global.js"></script>
   <script src="demo.js"></script>
 </body>

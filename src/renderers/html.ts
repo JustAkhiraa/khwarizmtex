@@ -49,6 +49,7 @@ import {
   textMetrics,
 } from './metrics';
 import { addClass, cls, el, type VElement, type VNode } from './vnode';
+import { equationHref } from '../references';
 
 export interface HtmlOptions {
   display: boolean;
@@ -330,6 +331,27 @@ class HtmlRenderer {
       }
       case 'enclose':
         return this.enclose(node, ctx);
+      case 'link': {
+        const body = this.content(node.body, ctx);
+        return { node: el('a', { class: 'khw-link', href: node.href, rel: 'noopener noreferrer' }, body.nodes), h: body.h, d: body.d, cls: null };
+      }
+      case 'ref': {
+        const [h, d] = textMetrics(node.text, false);
+        return {
+          node: node.resolved
+            ? el('a', { class: 'khw-ref', href: equationHref(node.target ?? '') }, [node.text])
+            : el('span', { class: 'khw-ref khw-ref-missing', title: 'Référence inconnue' }, [node.text]),
+          h,
+          d,
+          cls: null,
+        };
+      }
+      // Les labels et tags sont traités à la racine par renderToTree : ils ne
+      // doivent pas prendre de place lorsqu'ils apparaissent dans un tableau.
+      case 'label':
+      case 'tag':
+      case 'notag':
+        return { node: el('span', { class: 'khw-meta', 'aria-hidden': 'true' }), h: 0, d: 0, cls: null };
       case 'newline':
         return { node: el('br'), h: 0, d: 0, cls: null, newline: true };
       case 'error':

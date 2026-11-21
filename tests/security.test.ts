@@ -65,8 +65,8 @@ describe('garde-fous', () => {
     expect(parse('\\kern-9999em', { maxSize: 5 }).ast[0]).toEqual({ type: 'space', width: -5 });
   });
 
-  it('n’offre aucune commande de lien ou de code', () => {
-    for (const cmd of ['\\href{javascript:alert(1)}{x}', '\\url{javascript:x}', '\\htmlClass{x}{y}', '\\includegraphics{x}']) {
+  it('n’offre aucune commande de code', () => {
+    for (const cmd of ['\\htmlClass{x}{y}', '\\includegraphics{x}']) {
       expect(parse(cmd).errors[0]?.message).toMatch(/Commande inconnue/);
     }
   });
@@ -74,5 +74,35 @@ describe('garde-fous', () => {
   it('ne plante sur aucune entrée bizarre', () => {
     const weird = ['', '\\', '{', '}', '^', '_', '&', '#', '$', '\\left', '\\right)', '\\begin', '\\end{x}', '\\frac', '\\sqrt[', "'''", '\\\\', '%', '\u0000', '😀', '\\color', '\\not', '\\big'];
     for (const w of weird) expect(() => renderToString(w)).not.toThrow();
+  });
+
+  it('borne la source avant tokenisation', () => {
+    expect(parse('x'.repeat(101), { maxLength: 100 }).errors[0]?.message).toMatch(/trop longue/);
+    expect(() => parse('xxxx', { maxLength: 3, throwOnError: true })).toThrow(/trop longue/);
+    expect(parse('xxx', { maxLength: 3 }).errors).toEqual([]);
+  });
+
+  it.each(['\\displaystyle ', '\\rm ', '\\color{red}', '\\not '])('borne les récursions sans accolades : %s', (command) => {
+    expect(parse(command.repeat(2000) + 'x').errors[0]?.message).toMatch(/profonde/);
+    expect(() => renderToString(command.repeat(2000) + 'x')).not.toThrow();
+  });
+
+  it('borne les arbres créés par les doubles exposants', () => {
+    expect(() => renderToString('x' + '^x'.repeat(2000))).not.toThrow();
+    expect(parse('x' + '^x'.repeat(2000)).errors[0]?.message).toMatch(/profond/);
+  });
+
+  it('supporte 500 entrées aléatoires reproductibles', () => {
+    const tokens = ['\\frac', '\\sqrt[', '{', '}', '^', '_', '\\tag', '\\label', '\\ref',
+      '\\href', '\\color', '\\not', '\\rm', '&', '\\\\', '\\begin{matrix}', '\\end{matrix}', 'x', '\ud800'];
+    let state = 42;
+    for (let i = 0; i < 500; i++) {
+      let source = '';
+      for (let j = 0; j < 20; j++) {
+        state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+        source += tokens[state % tokens.length];
+      }
+      expect(() => renderToString(source), source).not.toThrow();
+    }
   });
 });
