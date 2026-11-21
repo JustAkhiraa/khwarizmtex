@@ -25,6 +25,6 @@ Ce projet suit le versionnement sémantique : les versions publiées prennent la
 - Correction du HTML seul caché aux lecteurs d'écran ; liens accessibles au clavier dans les sorties MathML.
 - Tests reproductibles sur 500 entrées aléatoires.
 - Tests navigateur : géométrie, navigation, clavier et mobile.
-- CI de développement Node 22/24 et vérification des artefacts Node 18/20/22/24.
+- Modèle de CI Node 22/24 et vérification des artefacts Node 18/20/22/24 fourni ; activation GitHub séparée requise.
 - Mise à jour des outils de développement pour corriger les alertes de dépendances.
 - Ajout d’une matrice publique de compatibilité.

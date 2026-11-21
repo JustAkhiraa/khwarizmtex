@@ -234,8 +234,11 @@ npm run bench
 ```
 
 La [matrice de compatibilité](COMPATIBILITY.md) précise les limites et les tests
-associés. La CI vérifie types, tests et build avec Node 22/24, puis teste les
-artefacts ESM et CommonJS sans dépendances sous Node 18/20/22/24.
+associés. Le modèle de CI `scripts/ci.workflow.example.yml` est fourni pour
+vérifier types, tests et build avec Node 22/24, puis les artefacts ESM et CommonJS
+sans dépendances sous Node 18/20/22/24. Il n'est pas actif : son installation dans
+`.github/workflows/ci.yml` nécessite un accès GitHub autorisé à modifier les
+workflows. Les tests peuvent déjà être exécutés localement avec les commandes ci-dessous.
 
 Pour les contrôles de géométrie et d'interaction dans Chromium, Firefox, WebKit
 et WebKit au format mobile :
