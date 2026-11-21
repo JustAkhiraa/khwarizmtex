@@ -8,7 +8,7 @@ aucune télémétrie, aucun service de compte.
 
 À la racine, après `npm ci`, lancer `npm run online`.
 Ouvrir http://127.0.0.1:4173/online/. Le serveur n'écoute que sur cet ordinateur.
-`KHW_DEMO_PORT=4190 npm run online` permet de choisir un autre port.
+`KHW_DEMO_PORT=4174 npm run online` permet de choisir un autre port.
 L'ouverture par `file://` n'est pas prise en charge pour Online (modules ES).
 
 ## Deux modes
