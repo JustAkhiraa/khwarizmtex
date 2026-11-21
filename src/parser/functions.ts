@@ -21,6 +21,7 @@ import { negate } from '../symbols/symbols';
 import { columnSpec, defaultColumns, mergeLetters, plainText } from './helpers';
 import type { Parser } from './parser';
 import { parseColor, parseDimension } from './values';
+import { safeLink } from './links';
 
 export type CommandHandler = (parser: Parser, token: Token) => MathNode | null;
 
@@ -311,13 +312,45 @@ define(['\\not'], (p, t) => {
   return next ? { type: 'group', body: [err, next] } : err;
 });
 
+// Numérotation et références d'équations
+
+define(['\\label'], (p, t) => {
+  const raw = p.parseRawArg();
+  return raw?.text ? { type: 'label', name: raw.text, loc: { start: t.start, end: raw.end } }
+    : p.error('Étiquette manquante pour \\label.', t.start, raw?.end ?? t.end);
+});
+
+define(['\\tag'], (p, t) => {
+  const next = p.peek();
+  const starred = next.kind === 'char' && next.text === '*';
+  if (starred) p.next();
+  return { type: 'tag', body: p.parseArg(t), starred };
+});
+
+define(['\\ref', '\\eqref'], (p, t) => {
+  const raw = p.parseRawArg();
+  if (!raw) return p.error(`Argument manquant pour ${t.text}.`, t.start, t.end, false);
+  return p.reference(raw.text, t.text === '\\eqref', t);
+});
+
 // Commandes sans effet visuel
 
-define(['\\label', '\\tag', '\\tag*'], (p) => {
-  p.parseRawArg();
-  return null;
+define(['\\nonumber', '\\notag'], () => ({ type: 'notag' }));
+define(['\\displaybreak', '\\allowbreak', '\\relax'], () => null);
+
+define(['\\href', '\\url'], (p, t) => {
+  const raw = p.parseRawArg();
+  const body: MathNode = t.text === '\\href' ? p.parseArg(t)
+    : { type: 'text', text: raw?.text.replace(/\\([%#&_])/g, '$1') ?? '', font: 'normal' };
+  const href = raw ? safeLink(raw.text) : null;
+  if (!p.options.trustLinks || !href) {
+    const error = p.error(!p.options.trustLinks
+      ? 'Liens désactivés : activer trustLinks pour une source de confiance.'
+      : 'Lien refusé : seuls HTTP(S), mailto et les fragments locaux sont autorisés.', t.start, raw?.end ?? t.end, false);
+    return { type: 'group', body: [body, error] };
+  }
+  return { type: 'link', href, body };
 });
-define(['\\nonumber', '\\notag', '\\displaybreak', '\\allowbreak', '\\relax'], () => null);
 
 // Environnements
 

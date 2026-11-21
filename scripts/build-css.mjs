@@ -4,7 +4,7 @@
 //
 // Minification prudente : commentaires retirés, blancs réduits. Les espaces
 // autour de + et - sont gardés (calc() en a besoin).
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync, cpSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -24,6 +24,8 @@ export function minify(css) {
 
 const min = minify(source);
 mkdirSync(join(root, 'dist'), { recursive: true });
+cpSync(join(root, 'assets/fonts'), join(root, 'dist/fonts'), { recursive: true });
+cpSync(join(root, 'src/styles/khwarizm-fonts.css'), join(root, 'dist/khwarizm-fonts.css'));
 writeFileSync(join(root, 'dist/khwarizm.css'), min + '\n');
 writeFileSync(
   join(root, 'src/styles/stylesheet.ts'),

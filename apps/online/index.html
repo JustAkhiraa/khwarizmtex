@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#15162c" />
+    <meta
+      name="description"
+      content="Un atelier de formules et de documents mathématiques. Local, sans compte et sans suivi."
+    />
+    <title>KhwarizmTeX Online — L’atelier mathématique</title>
+    <link rel="stylesheet" href="engine/khwarizm.css" data-khwarizm />
+    <link rel="stylesheet" href="engine/khwarizm-fonts.css" />
+    <link rel="stylesheet" href="online.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" aria-label="Atelier">
+        <a class="brand" href="./" aria-label="KhwarizmTeX Online, accueil"
+          ><span class="mark" aria-hidden="true">𝒦</span
+          ><span
+            >KhwarizmTeX<small>ONLINE · ATELIER MATHÉMATIQUE</small></span
+          ></a
+        >
+        <p class="nav-label">VOTRE ESPACE</p>
+        <button class="nav-item selected" type="button" id="atelier">
+          <span aria-hidden="true">▧</span> Mon atelier
+        </button>
+        <button class="nav-item" type="button" data-library>
+          <span aria-hidden="true">▦</span> Bibliothèque
+          <span class="badge">12</span>
+        </button>
+        <button class="nav-item" type="button" data-help>
+          <span aria-hidden="true">?</span> Guide express
+        </button>
+        <div class="sidebar-divider"></div>
+        <p class="nav-label">POUR COMMENCER</p>
+        <div class="quick-examples" id="quick-examples"></div>
+        <div class="sidebar-bottom">
+          <div class="privacy-icon" aria-hidden="true">◇</div>
+          <strong>Vos idées restent à vous.</strong>
+          <p>Sans compte. Sans suivi.<br />Sauvegardé dans ce navigateur.</p>
+          <span class="version">KhwarizmTeX · première édition</span>
+        </div>
+      </aside>
+      <div class="main-area">
+        <header class="topbar">
+          <a class="mobile-brand" href="./" aria-label="KhwarizmTeX Online"
+            >𝒦 <span>KhwarizmTeX</span></a
+          >
+          <span class="breadcrumb"
+            >Mon atelier <span aria-hidden="true">/</span>
+            <strong id="breadcrumb-mode">Formule</strong></span
+          >
+          <div class="top-actions">
+            <span class="save-status" id="save-status" role="status">Prêt</span
+            ><button
+              type="button"
+              class="icon-button mobile-only"
+              data-library
+              aria-label="Bibliothèque d’exemples"
+            >
+              ▦</button
+            ><button
+              type="button"
+              class="icon-button"
+              id="theme"
+              aria-label="Changer de thème"
+              title="Changer de thème"
+            >
+              ◐</button
+            ><button
+              type="button"
+              class="icon-button mobile-only"
+              data-help
+              aria-label="Ouvrir le guide"
+            >
+              ?
+            </button>
+          </div>
+        </header>
+        <main>
+          <section id="startup" class="startup" role="alert">
+            Chargement de l’atelier… Si ce message reste affiché, lancez
+            <code>npm run online</code> et ouvrez l’adresse locale
+            indiquée.<noscript>
+              JavaScript est nécessaire pour cet éditeur.</noscript
+            >
+          </section>
+          <div class="workspace-heading">
+            <div>
+              <p class="eyebrow">DE L’IDÉE À L’ÉQUATION</p>
+              <h1>Les idées prennent forme.</h1>
+              <p class="intro">
+                Écrivez. Explorez. Rendez les maths plus claires.
+              </p>
+            </div>
+            <button type="button" class="button quiet" data-library>
+              <span aria-hidden="true">▦</span> Exemples
+            </button>
+          </div>
+          <div class="workspace-controls">
+            <div
+              class="mode-switch"
+              role="group"
+              aria-label="Mode de l’atelier"
+            >
+              <button type="button" data-mode="formula" aria-pressed="true">
+                ƒ <span>Formule</span></button
+              ><button type="button" data-mode="document" aria-pressed="false">
+                ▤ <span>Document</span>
+              </button>
+            </div>
+            <div class="document-name">
+              <label class="sr-only" for="title">Titre du projet</label
+              ><input
+                id="title"
+                maxlength="100"
+                value="Ma première formule"
+                autocomplete="off"
+              />
+            </div>
+            <button type="button" class="button quiet" id="share">
+              Partager
+            </button>
+            <button type="button" class="button primary" id="export-open">
+              Exporter
+            </button>
+          </div>
+          <div class="workspace" id="workspace">
+            <section class="editor-pane" aria-labelledby="editor-heading">
+              <div class="pane-heading">
+                <h2 id="editor-heading">
+                  <span class="pane-dot" aria-hidden="true"></span> Éditeur
+                  <span class="pill" id="language">LaTeX</span>
+                </h2>
+                <div class="history-actions">
+                  <button
+                    type="button"
+                    class="icon-button"
+                    id="undo"
+                    aria-label="Annuler"
+                    title="Annuler (⌘/Ctrl Z)"
+                  >
+                    ↶</button
+                  ><button
+                    type="button"
+                    class="icon-button"
+                    id="redo"
+                    aria-label="Rétablir"
+                    title="Rétablir (⌘/Ctrl Maj Z)"
+                  >
+                    ↷
+                  </button>
+                </div>
+              </div>
+              <div
+                class="math-toolbar"
+                role="group"
+                aria-label="Insérer une structure mathématique"
+                id="math-toolbar"
+              ></div>
+              <div class="source-wrap">
+                <label for="source" class="sr-only">Source</label
+                ><textarea
+                  id="source"
+                  spellcheck="false"
+                  autocapitalize="off"
+                  autocomplete="off"
+                  autocorrect="off"
+                  aria-describedby="source-help"
+                  maxlength="50000"
+                ></textarea>
+                <ul
+                  class="suggestions"
+                  id="suggestions"
+                  aria-label="Suggestions de commandes"
+                  hidden
+                ></ul>
+              </div>
+              <div class="editor-foot">
+                <span id="source-help"
+                  >Une commande commence par \ · Tab pour compléter</span
+                ><span id="character-count">0 car.</span>
+              </div>
+            </section>
+            <section class="preview-pane" aria-labelledby="preview-heading">
+              <div class="pane-heading">
+                <h2 id="preview-heading">
+                  Aperçu <span class="live-label">en direct</span>
+                </h2>
+                <div
+                  class="zoom-controls"
+                  role="group"
+                  aria-label="Taille de l’aperçu"
+                >
+                  <button
+                    type="button"
+                    class="icon-button"
+                    id="zoom-out"
+                    aria-label="Réduire l’aperçu"
+                  >
+                    −</button
+                  ><output id="zoom-value">100 %</output
+                  ><button
+                    type="button"
+                    class="icon-button"
+                    id="zoom-in"
+                    aria-label="Agrandir l’aperçu"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+              <div class="preview-surface" id="preview-surface">
+                <div id="preview" class="formula-preview"></div>
+                <div class="preview-caption" id="preview-caption">
+                  La beauté d’une idée, dans sa forme la plus simple.
+                </div>
+              </div>
+              <div class="preview-foot">
+                <span id="render-status" role="status">Prêt à écrire</span
+                ><button type="button" class="button quiet small" id="copy">
+                  Copier le LaTeX
+                </button>
+              </div>
+            </section>
+          </div>
+          <section
+            class="diagnostics"
+            id="diagnostics"
+            aria-labelledby="diagnostics-heading"
+            hidden
+          >
+            <h2 id="diagnostics-heading">Quelques détails à vérifier</h2>
+            <ul id="error-list"></ul>
+          </section>
+          <div class="workspace-note">
+            <span>Un espace pour réfléchir, pas pour configurer.</span
+            ><button type="button" class="text-button" data-help>
+              Raccourcis et aide
+            </button>
+          </div>
+        </main>
+        <footer class="app-footer">
+          <span>CONÇU POUR LES ESPRITS CURIEUX</span
+          ><span>Rendu local · Aucune formule envoyée à un serveur</span>
+        </footer>
+      </div>
+    </div>
+    <div class="toast" id="toast" role="status" hidden></div>
+    <dialog id="library-dialog" aria-labelledby="library-title">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">UN POINT DE DÉPART</p>
+          <h2 id="library-title">La bibliothèque</h2>
+        </div>
+        <button
+          type="button"
+          class="icon-button"
+          data-close
+          aria-label="Fermer la bibliothèque"
+        >
+          ×
+        </button>
+      </div>
+      <p>
+        Choisissez une idée, puis faites-la vôtre. Votre contenu actuel pourra
+        être retrouvé avec Annuler.
+      </p>
+      <label class="sr-only" for="example-search">Rechercher un exemple</label
+      ><input
+        class="search"
+        id="example-search"
+        type="search"
+        placeholder="Rechercher : intégrale, matrice, cours…"
+      />
+      <div id="examples" class="examples-grid"></div>
+    </dialog>
+    <dialog id="help-dialog" aria-labelledby="help-title">
+      <div class="dialog-head">
+        <h2 id="help-title">Le guide express</h2>
+        <button
+          type="button"
+          class="icon-button"
+          data-close
+          aria-label="Fermer le guide"
+        >
+          ×
+        </button>
+      </div>
+      <h3>Formule</h3>
+      <p>
+        Écrivez du LaTeX ou utilisez la barre de symboles. Une sélection est
+        insérée dans la structure choisie. Tapez <code>\fra</code>, puis Tab
+        pour insérer une fraction.
+      </p>
+      <h3>Document</h3>
+      <p>
+        Écrivez du texte avec des titres <code>#</code>, <code>##</code>,
+        <code>###</code> et des listes <code>-</code>. Les formules dans le
+        texte se placent entre <code>$</code>. Pour une équation centrée, mettez
+        <code>$$</code> seuls sur les lignes avant et après la formule.
+      </p>
+      <p>
+        Ajoutez <code>\label{energie}</code> à une équation centrée et utilisez
+        <code>$\eqref{energie}$</code> pour y renvoyer. Les numéros sont
+        recalculés après modification. Un numéro par bloc, pas encore par ligne
+        d’un alignement.
+      </p>
+      <h3>Raccourcis</h3>
+      <p>
+        <kbd>⌘ / Ctrl</kbd> + <kbd>Z</kbd> : annuler · <kbd>Maj</kbd> +
+        <kbd>Z</kbd> : rétablir · <kbd>S</kbd> : sauvegarder ·
+        <kbd>Échap</kbd> : fermer un panneau.
+      </p>
+      <h3>Vos données</h3>
+      <p>
+        Les deux brouillons sont enregistrés dans ce navigateur. Ils ne sont pas
+        synchronisés entre appareils. Exportez régulièrement une sauvegarde
+        JSON. Un lien partagé contient la formule : toute personne qui possède
+        le lien peut la lire.
+      </p>
+      <h3>Les limites, simplement</h3>
+      <p>
+        Ce mode Document n’est pas un compilateur TeX complet : pas de packages,
+        bibliographie, images ni collaboration en ligne. PDF utilise la boîte
+        d’impression du navigateur. Le moteur ne prend pas encore en charge
+        toutes les commandes LaTeX.
+      </p>
+    </dialog>
+    <dialog id="export-dialog" aria-labelledby="export-title">
+      <div class="dialog-head">
+        <h2 id="export-title">Emporter votre travail</h2>
+        <button
+          type="button"
+          class="icon-button"
+          data-close
+          aria-label="Fermer les exports"
+        >
+          ×
+        </button>
+      </div>
+      <div class="export-options">
+        <button type="button" data-export="source">
+          <strong>Source</strong
+          ><span
+            >LaTeX pour une formule, texte structuré pour un document</span
+          ></button
+        ><button type="button" data-export="mathml" id="export-mathml">
+          <strong>MathML</strong
+          ><span>La formule dans un format mathématique ouvert</span></button
+        ><button type="button" data-export="print">
+          <strong>Imprimer / PDF</strong
+          ><span>Un rendu épuré, sans l’interface de l’atelier</span></button
+        ><button type="button" data-export="backup">
+          <strong>Sauvegarde de l’atelier</strong
+          ><span
+            >Les deux brouillons dans un fichier JSON réimportable</span
+          ></button
+        ><button type="button" id="import-open">
+          <strong>Restaurer une sauvegarde</strong
+          ><span>Choisir un fichier JSON exporté par cet atelier</span>
+        </button>
+      </div>
+      <input
+        type="file"
+        id="import-file"
+        accept=".json,application/json"
+        hidden
+      />
+    </dialog>
+    <script src="engine/khwarizmtex.global.js"></script>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

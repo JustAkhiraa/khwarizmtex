@@ -27,9 +27,13 @@ import { lookupChar, lookupDelimiter, lookupOperator, lookupSymbol, type SymbolI
 import { lookupFunction } from './functions';
 import { mergeLetters } from './helpers';
 import { parseColor } from './values';
+import { equationId } from '../references';
 
 export interface ParserOptions {
   macros?: Record<string, string> | undefined;
+  /** Étiquettes déjà connues, utilisées par `\\ref` et `\\eqref`. */
+  references?: Readonly<Record<string, string | number>> | undefined;
+  trustLinks?: boolean;
   maxExpand: number;
   maxDepth: number;
   /** Taille maximale d'une espace explicite (\hspace, \kern), en em. */
@@ -282,12 +286,17 @@ export class Parser {
     const style = STYLE_SWITCHES[t.text];
     if (style) {
       this.next();
-      return { type: 'style', style, body: this.parseList(stop) };
+      this.enter(t);
+      const body = this.parseList(stop);
+      this.leave();
+      return { type: 'style', style, body };
     }
     const font = FONT_SWITCHES[t.text];
     if (font) {
       this.next();
+      this.enter(t);
       const body = this.withFont(font, () => this.parseList(stop));
+      this.leave();
       return { type: 'group', body: mergeLetters(body) };
     }
     if (t.text === '\\color') {
@@ -295,7 +304,9 @@ export class Parser {
       const model = this.parseRawOptional();
       const raw = this.parseRawArg();
       const color = raw ? parseColor(raw.text, model ?? undefined) : null;
+      this.enter(t);
       const body = this.parseList(stop);
+      this.leave();
       if (!color) {
         const err = this.error(`Couleur inconnue : « ${raw?.text ?? ''} ».`, t.start, raw?.end ?? t.end);
         return { type: 'group', body: [err, ...body] };
@@ -522,9 +533,29 @@ export class Parser {
     return node;
   }
 
+  /** Résout une référence d'équation sans jamais faire confiance à son libellé pour générer du HTML. */
+  reference(name: string, eqref: boolean, token: Token): MathNode {
+    const refs = this.options.references;
+    const value = refs && Object.prototype.hasOwnProperty.call(refs, name) ? refs[name] : undefined;
+    if (value === undefined) {
+      this.errors.push({ message: `Référence inconnue : ${name || '(vide)'}.`, start: token.start, end: token.end });
+      return { type: 'ref', text: '??', resolved: false };
+    }
+    const text = String(value);
+    return {
+      type: 'ref',
+      text: eqref ? `(${text})` : text,
+      target: equationId(name),
+      resolved: true,
+    };
+  }
+
   private parseCommand(t: Token): MathNode | null {
     const fn = lookupFunction(t.text);
-    if (fn) return fn(this, t);
+    if (fn) {
+      this.enter(t);
+      try { return fn(this, t); } finally { this.leave(); }
+    }
 
     const op = lookupOperator(t.text);
     if (op) return { type: 'op', name: op.name, symbol: op.symbol, limits: op.limits ? 'auto' : 'nolimits' };
@@ -593,7 +624,10 @@ export class Parser {
     let depth = 1;
     for (;;) {
       const t = this.gullet.nextRaw();
-      if (t.kind === 'eof') return { text, start: open.start, end: this.input.length };
+      if (t.kind === 'eof') {
+        this.error('Accolade « { » jamais fermée.', open.start, open.end);
+        return { text, start: open.start, end: this.input.length };
+      }
       if (t.kind === 'open') depth++;
       if (t.kind === 'close' && --depth === 0) return { text: text.trim(), start: open.start, end: t.end };
       text += t.kind === 'space' ? ' ' : t.text;
@@ -874,4 +908,3 @@ function fontFor(font: MathVariant, text: string, own?: MathVariant): MathVarian
   }
   return font;
 }
-

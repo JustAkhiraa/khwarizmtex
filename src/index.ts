@@ -8,7 +8,7 @@
  */
 export const version = '0.1.0';
 
-export { parse, renderToElement, renderToNode, renderToString, renderToTree, type ParseResult } from './render';
+export { parse, renderAll, renderAllToNodes, renderToElement, renderToNode, renderToString, renderToTree, type ParseResult, type RenderAllResult } from './render';
 export type { OutputFormat, RenderOptions } from './options';
 export { KhwarizmError, KhwarizmLimitError, type Diagnostic } from './errors';
 

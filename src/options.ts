@@ -20,6 +20,10 @@ export interface RenderOptions {
   maxExpand?: number;
   /** Profondeur maximale d'imbrication (128). */
   maxDepth?: number;
+  /** Longueur maximale de la source avant tokenisation (250 000 unités UTF-16). */
+  maxLength?: number;
+  /** Autorise les liens HTTP(S), mailto et fragments locaux (false). */
+  trustLinks?: boolean;
   /** Taille maximale d'une espace explicite, en em (20). */
   maxSize?: number;
   /** Possibilités de retour à la ligne après =, +, −, virgule (true). */
@@ -28,6 +32,8 @@ export interface RenderOptions {
   copyButton?: boolean;
   /** Classe supplémentaire sur l'élément racine. */
   className?: string;
+  /** Étiquettes d'équations disponibles pour `\\ref` et `\\eqref`. */
+  references?: Readonly<Record<string, string | number>>;
 }
 
 export interface ResolvedOptions {
@@ -37,14 +43,17 @@ export interface ResolvedOptions {
   macros: Record<string, string> | undefined;
   maxExpand: number;
   maxDepth: number;
+  maxLength: number;
+  trustLinks: boolean;
   maxSize: number;
   lineBreaks: boolean;
   copyButton: boolean;
   className: string | undefined;
+  references: Readonly<Record<string, string | number>> | undefined;
 }
 
 function positive(value: number | undefined, fallback: number): number {
-  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.floor(value) : fallback;
+  return typeof value === 'number' && Number.isFinite(value) && value >= 1 ? Math.floor(value) : fallback;
 }
 
 export function resolveOptions(options: RenderOptions = {}): ResolvedOptions {
@@ -56,9 +65,12 @@ export function resolveOptions(options: RenderOptions = {}): ResolvedOptions {
     macros: options.macros,
     maxExpand: positive(options.maxExpand, 1000),
     maxDepth: positive(options.maxDepth, 128),
-    maxSize: typeof options.maxSize === 'number' && options.maxSize >= 0 ? options.maxSize : 20,
+    maxLength: positive(options.maxLength, 250_000),
+    trustLinks: options.trustLinks === true,
+    maxSize: typeof options.maxSize === 'number' && Number.isFinite(options.maxSize) && options.maxSize >= 0 ? options.maxSize : 20,
     lineBreaks: options.lineBreaks !== false,
     copyButton: options.copyButton === true,
     className: options.className,
+    references: options.references,
   };
 }

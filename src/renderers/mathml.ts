@@ -293,6 +293,17 @@ function convert(node: MathNode, display: boolean, unary: boolean): VNode {
       return el('mphantom', {}, [convertArg(node.body, display)]);
     case 'enclose':
       return el('menclose', { notation: NOTATIONS[node.notation] ?? 'box' }, [convertArg(node.body, display)]);
+    case 'ref':
+      return el('mtext', node.resolved ? {} : { mathcolor: 'currentColor' }, [node.text]);
+    case 'link':
+      return convertArg(node.body, display);
+    case 'label':
+    case 'notag':
+      return el('mrow');
+    case 'tag': {
+      const body = convertArg(node.body, display);
+      return node.starred ? body : el('mrow', {}, [el('mo', { fence: 'true', stretchy: 'false' }, ['(']), body, el('mo', { fence: 'true', stretchy: 'false' }, [')'])]);
+    }
     case 'newline':
       return el('mspace', { linebreak: 'newline' });
     case 'error':

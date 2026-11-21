@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { renderToString } from '../src/render';
+import { renderAll, renderToString } from '../src/render';
 
 const html = (s: string, display = false) => renderToString(s, { output: 'html', displayMode: display });
 
 describe('rendu HTML', () => {
   it('produit un DOM lisible, sans style pour les cas simples', () => {
     expect(html('\\frac{a}{b}')).toMatchInlineSnapshot(
-      `"<span class="khw" data-latex="\\frac{a}{b}"><span class="khw-html" aria-hidden="true"><span class="khw-frac"><span class="khw-num khw-s70"><var>a</var></span><span class="khw-den khw-s70"><var>b</var></span></span></span></span>"`,
+      `"<span class="khw" data-latex="\\frac{a}{b}"><span class="khw-html"><span class="khw-frac"><span class="khw-num khw-s70"><var>a</var></span><span class="khw-den khw-s70"><var>b</var></span></span></span></span>"`,
     );
   });
 
@@ -76,6 +76,26 @@ describe('rendu HTML', () => {
   it('pose la classe display et garde la source', () => {
     const out = renderToString('x^2', { displayMode: true });
     expect(out.startsWith('<span class="khw khw-display" data-latex="x^2">')).toBe(true);
+  });
+
+  it('place un tag à droite et ancre l’équation étiquetée', () => {
+    const out = renderToString('E=mc^2\\tag{1}\\label{eq:energie}', { output: 'html', displayMode: true });
+    expect(out).toContain('class="khw khw-display khw-has-tag"');
+    expect(out).toContain('id="khw-eq-eq%3Aenergie"');
+    expect(out).toContain('<span class="khw-tag">(');
+    expect(renderToString('x\\tag*{A}', { output: 'html' })).toContain('<span class="khw-tag"><var>A</var></span>');
+  });
+
+  it('résout les références avant et arrière dans un rendu groupé', () => {
+    const batch = renderAll(['Voir \\eqref{eq:energie}.', 'E=mc^2\\label{eq:energie}'], { output: 'html', displayMode: true });
+    expect(batch.references).toEqual({ 'eq:energie': '1' });
+    expect(batch.html[0]).toContain('<a class="khw-ref" href="#khw-eq-eq%253Aenergie">(1)</a>');
+    expect(batch.html[1]).toContain('id="khw-eq-eq%3Aenergie"');
+    expect(batch.html[1]).toContain('class="khw-tag"');
+  });
+
+  it('autorise une référence vers l’avant avec throwOnError', () => {
+    expect(() => renderAll(['\\eqref{plus-tard}', 'x\\label{plus-tard}'], { throwOnError: true })).not.toThrow();
   });
 
   it('rend sans rien lever toute une série de formules courantes', () => {

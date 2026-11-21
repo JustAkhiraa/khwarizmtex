@@ -2,6 +2,10 @@
 (function () {
   'use strict';
   var K = window.KhwarizmTeX;
+  if (!K) {
+    document.getElementById('startup-message').textContent = 'Le moteur KhwarizmTeX n’est pas chargé. Lancez npm run demo depuis le dossier du projet, puis ouvrez l’adresse locale indiquée. Aucun réglage de sécurité du navigateur n’a besoin d’être désactivé.';
+    return;
+  }
 
   var EXAMPLES = [
     { title: 'Second degré', tex: 'x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}' },
@@ -106,4 +110,5 @@
   K.autoRender(document.getElementById('prose'), { copyButton: true });
   render();
   setWidth();
+  document.getElementById('startup').hidden = true;
 })();

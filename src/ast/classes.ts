@@ -34,6 +34,9 @@ export function atomClass(node: MathNode): AtomClass | null {
     case 'phantom':
       return atomClass(node.body) ?? 'ord';
     case 'space':
+    case 'label':
+    case 'tag':
+    case 'notag':
     case 'newline':
       return null;
     default:
