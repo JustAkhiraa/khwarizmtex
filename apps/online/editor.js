@@ -1,5 +1,15 @@
 import { COMMANDS, STRUCTURES } from "./presets.js";
 import { MAX_SOURCE } from "./model.js";
+import { CATALOG } from "./catalog.js";
+import { parseDocument, inlineParts } from "./document.js";
+
+const completionMap = new Map(COMMANDS.map((entry) => [entry[0], entry]));
+for (const item of CATALOG) {
+  const name = /^\\([a-zA-Z]+)/.exec(item.source)?.[1];
+  if (name && !completionMap.has(name))
+    completionMap.set(name, [name, item.source, item.label]);
+}
+const completions = [...completionMap.values()];
 
 export function bindEditor(
   source,
@@ -55,7 +65,7 @@ export function bindEditor(
       return;
     }
     prefix = { start: source.selectionStart - match[0].length };
-    matches = COMMANDS.filter((c) => c[0].startsWith(match[1])).slice(0, 5);
+    matches = completions.filter((c) => c[0].startsWith(match[1])).slice(0, 5);
     active = 0;
     suggestions.replaceChildren();
     matches.forEach((command, index) => {
@@ -75,6 +85,27 @@ export function bindEditor(
     });
     suggestions.hidden = matches.length === 0;
   }
+  function insert(
+    value,
+    selection = [source.selectionStart, source.selectionEnd],
+  ) {
+    if (getMode() === "document") {
+      const position = selection[0];
+      const inMath = parseDocument(source.value).blocks.some((block) =>
+        block.type === "math"
+          ? position >= block.start &&
+            selection[1] <= block.start + block.text.length
+          : inlineParts(block.text).some(
+              (part) =>
+                part.type === "math" &&
+                position >= block.start + part.start &&
+                selection[1] <= block.start + part.start + part.text.length,
+            ),
+      );
+      if (!inMath) value = "$" + value + "$";
+    }
+    replace(value, selection[0], selection[1]);
+  }
   for (const structure of STRUCTURES) {
     const button = document.createElement("button");
     button.type = "button";
@@ -82,20 +113,7 @@ export function bindEditor(
     button.title = structure.label;
     button.setAttribute("aria-label", structure.label);
     button.addEventListener("click", () => {
-      let value = structure.source;
-      // Le document garde une grammaire simple : l’insertion crée une formule inline
-      // sauf si le curseur est déjà dans des délimiteurs mathématiques.
-      if (getMode() === "document") {
-        const before = source.value.slice(0, source.selectionStart);
-        const displayCount = (before.match(/^\s*\$\$\s*$/gm) || []).length;
-        const last = before
-          .slice(before.lastIndexOf("\n") + 1)
-          .replace(/\\\$/g, "");
-        const inlineCount = (last.match(/\$/g) || []).length;
-        if (displayCount % 2 === 0 && inlineCount % 2 === 0)
-          value = "$" + value + "$";
-      }
-      replace(value);
+      insert(structure.source);
     });
     toolbar.append(button);
   }
@@ -133,8 +151,12 @@ export function bindEditor(
   });
   source.addEventListener("blur", () =>
     setTimeout(() => {
-      if (!suggestions.contains(document.activeElement)) close();
+      if (
+        document.activeElement !== source &&
+        !suggestions.contains(document.activeElement)
+      )
+        close();
     }, 150),
   );
-  return { close };
+  return { close, insert };
 }
