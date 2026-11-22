@@ -650,7 +650,7 @@ class HtmlRenderer {
       } else current.push(child);
     }
     close();
-    return this.fence(node.left, node.right, segments, middles, false);
+    return this.fence(node.left, node.right, segments, middles, false, true);
   }
 
   /**
@@ -663,6 +663,8 @@ class HtmlRenderer {
     segments: { nodes: VNode[]; h: number; d: number }[],
     middles: string[],
     forceStretch: boolean,
+    /** \left…\right : chaque segment reçoit .khw-lr, repère neutre pour les outils. */
+    lr = false,
   ): Box {
     let h = 0;
     let d = 0;
@@ -679,7 +681,8 @@ class HtmlRenderer {
       };
       glyph(left);
       segments.forEach((s, i) => {
-        children.push(...s.nodes);
+        if (lr) children.push(el('span', { class: 'khw-lr' }, s.nodes));
+        else children.push(...s.nodes);
         if (i < middles.length) glyph(middles[i] ?? '');
       });
       glyph(right);
@@ -691,7 +694,7 @@ class HtmlRenderer {
     const delim = (c: string): VNode => stretchyDelimiter(c, total) ?? el('span', { class: 'khw-delim khw-delim-glyph' }, [c]);
     children.push(delim(left));
     segments.forEach((s, i) => {
-      const body = el('span', { class: 'khw-fenced-body' }, s.nodes);
+      const body = el('span', { class: cls('khw-fenced-body', lr && 'khw-lr') }, s.nodes);
       // Symétrie autour de l'axe : on complète le côté le plus court.
       const padTop = half - (s.h - AXIS);
       const padBottom = half - (s.d + AXIS);

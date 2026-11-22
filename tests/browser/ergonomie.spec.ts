@@ -114,3 +114,24 @@ test("accueil : une source vide reste accueillante", async ({ page }) => {
   await page.fill("#source", "");
   await expect(page.locator("#preview .empty-state")).toContainText("Votre formule apparaîtra ici");
 });
+
+test("aperçu : bornes d'une somme affichée, cellules, accents et texte", async ({ page }) => {
+  await page.fill("#source", "\\sum_{n=1}^{N} u_n");
+  await page.locator('#preview [data-slot="sup:0:sup"]').click();
+  await page.keyboard.press("ControlOrMeta+a");
+  await page.keyboard.type("100");
+  await expect(page.locator("#source")).toHaveValue("\\sum_{n=1}^{100} u_n");
+
+  await page.fill("#source", "\\begin{pmatrix} a & b \\\\ c & □ \\end{pmatrix}");
+  await page.locator('#preview [data-slot="cell:0:cell:1-1"]').click();
+  await page.keyboard.type("d");
+  await expect(page.locator("#source")).toHaveValue("\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}");
+
+  await page.fill("#source", "\\vec{□} \\text{pour tout } x");
+  await page.locator('#preview [data-slot="accent:0:base"]').click();
+  await page.keyboard.type("u");
+  await page.locator('#preview [data-slot="text:0:text"]').click();
+  await page.keyboard.press("ControlOrMeta+a");
+  await page.keyboard.type("si ");
+  await expect(page.locator("#source")).toHaveValue("\\vec{u} \\text{si } x");
+});

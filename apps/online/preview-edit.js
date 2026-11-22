@@ -3,18 +3,45 @@
 // portion exacte de la source, puis l'aperçu, la sauvegarde et l'historique suivent.
 import { findSlots, partText, ROLE_NAMES } from "./slots.js";
 
+const child = (box, selector) =>
+  [...box.children].find((el) => el.matches(selector));
+// Pour chaque sorte de zone : où la trouver dans le rendu, et comment atteindre
+// chacune de ses parties. Les numéros suivent l'ordre du document.
 const DOM_PARTS = {
-  frac: { selector: ".khw-frac", parts: { num: ".khw-num", den: ".khw-den" } },
+  frac: {
+    selector: ".khw-frac",
+    find: (box, part) => child(box, part.role === "num" ? ".khw-num" : ".khw-den"),
+  },
   sqrt: {
     selector: ".khw-sqrt",
-    parts: { radicand: ".khw-radicand", index: ".khw-root" },
+    find: (box, part) => child(box, part.role === "index" ? ".khw-root" : ".khw-radicand"),
   },
-  // L'exposant et l'indice sont la zone elle-même.
-  sup: { selector: "sup", parts: { sup: null } },
-  sub: { selector: "sub", parts: { sub: null } },
+  // Exposant ou borne du haut d'une somme affichée en grand.
+  sup: { selector: "sup, .khw-limits > .khw-over", find: (box) => box },
+  sub: { selector: "sub, .khw-limits > .khw-under", find: (box) => box },
+  accent: { selector: ".khw-accent", find: (box) => child(box, ".khw-base") },
+  text: { selector: ".khw-text", find: (box) => box },
+  fenced: { selector: ".khw-lr", find: (box) => box },
+  boxed: { selector: ".khw-boxed", find: (box) => box },
+  cell: {
+    selector: ".khw-mtable",
+    find: (box, part) =>
+      box.querySelectorAll(":scope > .khw-mtr")[part.row]?.querySelectorAll(":scope > .khw-mtd")[part.col],
+  },
 };
-const KIND_NAMES = { frac: " de la fraction ", sqrt: " de la racine ", sup: " ", sub: " " };
-const EDITABLE = ".khw-num, .khw-den, .khw-radicand, .khw-root, .khw-html sup, .khw-html sub";
+const KIND_NAMES = {
+  frac: " de la fraction ",
+  sqrt: " de la racine ",
+  sup: " ",
+  sub: " ",
+  accent: " de l'accent ",
+  text: " ",
+  cell: " du tableau ",
+  fenced: " des parenthèses ",
+  boxed: " du cadre ",
+};
+const EDITABLE =
+  ".khw-num, .khw-den, .khw-radicand, .khw-root, .khw-html sup, .khw-html sub, .khw-over, .khw-under, .khw-mtd, .khw-text, .khw-lr, .khw-boxed";
 const squash = (text) => text.replace(/[\s​⁡-⁤]+/g, "");
 function balanced(text) {
   let depth = 0;
@@ -82,19 +109,22 @@ export function bindPreviewEditor({
         const box = elements[rank];
         for (const part of slot.parts) {
           if (part.start < 0) continue;
-          const selector = spec.parts[part.role];
-          const el = selector
-            ? [...box.children].find((child) => child.matches(selector))
-            : box;
+          const el = spec.find(box, part);
           if (!el) continue;
           const text = src.slice(part.start, part.end);
           // Le rendu de la portion doit correspondre à ce qui est affiché.
-          if (renderedText(text) !== squash(el.textContent)) continue;
-          const key = kind + ":" + rank + ":" + part.role;
+          // Un texte s'affiche tel quel ; le reste passe par le moteur.
+          const expected = kind === "text" && !/[\\$]/.test(text) ? squash(text) : renderedText(text);
+          if (expected !== squash(el.textContent)) continue;
+          const key =
+            kind + ":" + rank + ":" + part.role + (part.role === "cell" ? ":" + part.row + "-" + part.col : "");
           el.dataset.slot = key;
           el.classList.add("khw-editable");
           const label =
-            ROLE_NAMES[part.role] + KIND_NAMES[kind] + (rank + 1);
+            ROLE_NAMES[part.role] +
+            (part.role === "cell" ? " ligne " + (part.row + 1) + ", colonne " + (part.col + 1) : "") +
+            KIND_NAMES[kind] +
+            (rank + 1);
           el.title = label + " : cliquer pour modifier";
           zones.push({ key, el, part, label, at: slot.at });
         }

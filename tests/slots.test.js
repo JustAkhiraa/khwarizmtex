@@ -61,3 +61,21 @@ describe("exposants et indices", () => {
     expect(findSlots("a\\_b")).toEqual([]);
   });
 });
+describe("tableaux, parenthèses, accents et texte", () => {
+  it("découpe les cellules aux & et \\\\ de premier niveau", () => {
+    const src = "\\begin{pmatrix} a & \\frac{1}{2} \\\\[2pt] c & \\end{pmatrix}";
+    const cell = findSlots(src).find((s) => s.kind === "cell");
+    expect(cell.parts.map((p) => src.slice(p.start, p.end))).toEqual(["a", "\\frac{1}{2}", "c", ""]);
+    expect(replacePart(src, cell.parts[3], "d")).toContain("c & d");
+  });
+  it("relie \\left…\\right, mais pas avec \\middle", () => {
+    const src = "\\left( a+b \\right)";
+    const [f] = findSlots(src);
+    expect(src.slice(f.parts[0].start, f.parts[0].end)).toBe("a+b");
+    expect(findSlots("\\left( a \\middle| b \\right)")[0].parts[0].start).toBe(-1);
+  });
+  it("relie accents et texte", () => {
+    const src = "\\vec{u}+\\text{si }";
+    expect(findSlots(src).map((s) => s.kind)).toEqual(["accent", "text"]);
+  });
+});
