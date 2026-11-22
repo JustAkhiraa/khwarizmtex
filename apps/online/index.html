@@ -176,7 +176,12 @@
                 role="group"
                 aria-label="Outils mathématiques avancés"
               >
-                <button type="button" id="palette-open">
+                <button
+                  type="button"
+                  id="palette-open"
+                  aria-expanded="false"
+                  aria-controls="palette-panel"
+                >
                   Tous les symboles
                 </button>
                 <button type="button" id="matrix-open">Matrices</button>
@@ -189,6 +194,55 @@
                   Joindre les lignes
                 </button>
               </div>
+              <div class="recent-row" id="recent-row" hidden>
+                <span class="recent-label" id="recent-label">Récents</span>
+                <div
+                  class="recent-list"
+                  id="recent-list"
+                  role="group"
+                  aria-labelledby="recent-label"
+                ></div>
+              </div>
+              <section
+                class="palette-panel"
+                id="palette-panel"
+                aria-label="Symboles et formules"
+                hidden
+              >
+                <div class="palette-search-row">
+                  <label class="sr-only" for="palette-search"
+                    >Rechercher un symbole</label
+                  ><input
+                    id="palette-search"
+                    class="search"
+                    type="search"
+                    placeholder="Chercher : alpha, dérivée, flèche…"
+                  /><button
+                    type="button"
+                    class="icon-button"
+                    id="palette-clear"
+                    aria-label="Effacer la recherche"
+                    hidden
+                  >
+                    ×
+                  </button>
+                </div>
+                <div
+                  id="palette-categories"
+                  class="category-tabs"
+                  role="group"
+                  aria-label="Familles de symboles"
+                ></div>
+                <p id="science-note" class="tool-note" hidden>
+                  Modèles chimiques en notation standard. Pas encore de
+                  structures moléculaires ni de syntaxe mhchem.
+                </p>
+                <p id="palette-count" class="palette-count" role="status"></p>
+                <div id="palette-grid" class="symbol-grid"></div>
+                <button id="palette-more" class="button" type="button">
+                  Afficher davantage
+                </button>
+              </section>
               <div class="source-wrap">
                 <label for="source" class="sr-only">Source</label
                 ><textarea
@@ -406,52 +460,6 @@
         accept=".json,application/json"
         hidden
       />
-    </dialog>
-    <dialog
-      id="palette-dialog"
-      class="wide-dialog"
-      aria-labelledby="palette-title"
-    >
-      <div class="dialog-head">
-        <div>
-          <p class="eyebrow">VOTRE BOÎTE À OUTILS</p>
-          <h2 id="palette-title">Symboles et formules</h2>
-        </div>
-        <button
-          type="button"
-          class="icon-button"
-          data-close
-          aria-label="Fermer les symboles"
-        >
-          ×
-        </button>
-      </div>
-      <p>
-        Un clic insère à la position du curseur. Une sélection remplace le
-        premier carré du modèle.
-      </p>
-      <label class="sr-only" for="palette-search">Rechercher un symbole</label
-      ><input
-        id="palette-search"
-        class="search"
-        type="search"
-        placeholder="Chercher : alpha, dérivée, énergie, flèche…"
-      />
-      <div
-        id="palette-categories"
-        class="category-tabs"
-        role="group"
-        aria-label="Familles de symboles"
-      ></div>
-      <p id="science-note" class="tool-note" hidden>
-        Modèles chimiques en notation standard. Pas encore de structures
-        moléculaires ni de syntaxe mhchem.
-      </p>
-      <p id="palette-count" role="status"></p>
-      <div id="palette-grid" class="symbol-grid"></div>
-      <button id="palette-more" class="button" type="button">
-        Afficher davantage
-      </button>
     </dialog>
     <dialog id="matrix-dialog" aria-labelledby="matrix-title">
       <div class="dialog-head">

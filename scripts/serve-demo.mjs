@@ -28,6 +28,7 @@ const onlineFiles = [
   "catalog.js",
   "tools.js",
   "imports.js",
+  "recents.js",
 ];
 for (const name of onlineFiles) {
   files.set("/online/" + name, [

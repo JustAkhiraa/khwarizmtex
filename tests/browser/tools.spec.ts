@@ -51,7 +51,9 @@ test("palette : recherche, sélection, insertion et annulation", async ({
   await expect(page.locator("#diagnostics")).toBeHidden();
   await page.locator("#undo").click();
   await expect(page.locator("#source")).toHaveValue("ab");
-  await page.locator("#palette-open").click();
+  // Le panneau reste ouvert et garde la recherche après l'insertion.
+  await expect(page.locator("#palette-panel")).toBeVisible();
+  await expect(page.locator("#palette-search")).toHaveValue("chevrons");
   await page.locator("[data-category=greek]").click();
   await info.attach("palette", {
     body: await page.screenshot({ fullPage: true }),
@@ -65,6 +67,31 @@ test("palette : recherche, sélection, insertion et annulation", async ({
     body: await page.screenshot({ fullPage: true }),
     contentType: "image/png",
   });
+});
+
+test("palette ouverte : cinq insertions de suite et récents conservés", async ({
+  page,
+}) => {
+  await page.locator("#source").fill("");
+  await page.locator("#palette-open").click();
+  await page.locator("[data-category=greek]").click();
+  for (const name of ["alpha", "beta", "gamma", "delta", "epsilon"])
+    await page
+      .locator("#palette-grid")
+      .getByRole("button", { name, exact: true })
+      .click();
+  await expect(page.locator("#source")).toHaveValue(
+    "\\alpha \\beta \\gamma \\delta \\epsilon ",
+  );
+  await expect(page.locator("#palette-panel")).toBeVisible();
+  await page.mouse.move(0, 0);
+  await expect(page.locator("#recent-list button").first()).toHaveAttribute(
+    "aria-label",
+    "epsilon",
+  );
+  await page.reload();
+  await expect(page.locator("#recent-row")).toBeVisible();
+  await expect(page.locator("#recent-list button")).toHaveCount(5);
 });
 
 test("insertion Document : respecte les blocs et les dollars échappés", async ({
@@ -81,8 +108,10 @@ test("insertion Document : respecte les blocs et les dollars échappés", async 
       const position = element.value.lastIndexOf("x");
       element.setSelectionRange(position, position + 1);
     });
-    await page.locator("#palette-open").click();
+    if (await page.locator("#palette-panel").isHidden())
+      await page.locator("#palette-open").click();
     await page
+      .locator("#palette-grid")
       .getByRole("button", { name: "Racine carrée", exact: true })
       .click();
     await expect(page.locator("#source")).toHaveValue(expected);

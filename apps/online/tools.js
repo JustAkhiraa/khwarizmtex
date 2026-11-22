@@ -1,4 +1,5 @@
 import { CATALOG, CATEGORIES, searchCatalog, matrixSource } from "./catalog.js";
+import { createRecents } from "./recents.js";
 const $ = (id) => document.getElementById(id);
 export function bindTools(editor, source, engine, notify, onChange) {
   let selection = [0, 0];
@@ -12,43 +13,82 @@ export function bindTools(editor, source, engine, notify, onChange) {
     dialog.close();
     editor.insert(value, selection);
   }
-  function drawPalette() {
-    const items = searchCatalog($("palette-search").value, category);
-    $("palette-grid").replaceChildren();
-    $("palette-count").textContent = items.length + " choix";
-    $("palette-more").hidden = items.length <= limit;
-    for (const item of items.slice(0, limit)) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "symbol-card";
-      button.setAttribute("aria-label", item.label);
-      button.title = item.source;
-      const preview = document.createElement("span");
-      preview.className = "symbol-preview";
-      preview.setAttribute("aria-hidden", "true");
-      engine.renderToElement(item.source.replaceAll("□", "x"), preview, {
-        output: "html",
-        displayMode: false,
-      });
+  const recents = createRecents();
+  let recentsDirty = false;
+  function card(item, compact) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = compact ? "recent-chip" : "symbol-card";
+    button.setAttribute("aria-label", item.label);
+    button.title = item.label + " : " + item.source;
+    button.dataset.tool = item.id;
+    const preview = document.createElement("span");
+    preview.className = "symbol-preview";
+    preview.setAttribute("aria-hidden", "true");
+    engine.renderToElement(item.source.replaceAll("□", "x"), preview, {
+      output: "html",
+      displayMode: false,
+    });
+    button.append(preview);
+    if (!compact) {
       const name = document.createElement("span");
       name.className = "symbol-label";
       name.textContent = item.label;
-      button.append(preview, name);
-      button.addEventListener("click", () =>
-        insert(item.source, $("palette-dialog")),
-      );
-      $("palette-grid").append(button);
+      button.append(name);
     }
+    // Garde le curseur dans la source : l'insertion se fait à la sélection actuelle.
+    button.addEventListener("mousedown", (event) => event.preventDefault());
+    button.addEventListener("click", () => use(item));
+    return button;
+  }
+  function use(item) {
+    const before = source.value;
+    editor.insert(item.source);
+    if (source.value === before) return;
+    recents.add(item.id);
+    // Pas de réordonnancement sous le pointeur : on redessine en quittant la ligne.
+    if ($("recent-row").matches(":hover, :focus-within")) recentsDirty = true;
+    else drawRecents();
+  }
+  function drawRecents() {
+    recentsDirty = false;
+    const items = recents.items();
+    $("recent-list").replaceChildren(...items.map((item) => card(item, true)));
+    $("recent-row").hidden = items.length === 0;
+  }
+  for (const type of ["mouseleave", "focusout"])
+    $("recent-row").addEventListener(type, () => {
+      if (recentsDirty && !$("recent-row").matches(":focus-within")) drawRecents();
+    });
+  editor.onInsertStructure = (id) => {
+    recents.add(id);
+    drawRecents();
+  };
+  drawRecents();
+  function drawPalette() {
+    const query = $("palette-search").value.trim();
+    const items = searchCatalog(query, query ? "all" : category);
+    $("palette-clear").hidden = !query;
+    $("palette-grid").replaceChildren(
+      ...items.slice(0, limit).map((item) => card(item, false)),
+    );
+    $("palette-count").textContent = query
+      ? items.length + " résultat" + (items.length > 1 ? "s" : "") + " dans tout le catalogue"
+      : items.length + " choix";
+    $("palette-more").hidden = items.length <= limit;
     if (!items.length) {
       const p = document.createElement("p");
       p.textContent = "Aucun résultat. Essayez un nom ou une commande.";
       $("palette-grid").append(p);
     }
-    $("science-note").hidden = category !== "chemistry";
+    $("science-note").hidden = category !== "chemistry" || Boolean(query);
     $("palette-categories")
       .querySelectorAll("button")
       .forEach((b) =>
-        b.setAttribute("aria-pressed", String(b.dataset.category === category)),
+        b.setAttribute(
+          "aria-pressed",
+          String(!query && b.dataset.category === category),
+        ),
       );
   }
   for (const group of [
@@ -59,26 +99,34 @@ export function bindTools(editor, source, engine, notify, onChange) {
     button.type = "button";
     button.textContent = group.label;
     button.dataset.category = group.id;
+    button.addEventListener("mousedown", (event) => event.preventDefault());
     button.addEventListener("click", () => {
       category = group.id;
       limit = 60;
+      $("palette-search").value = "";
       drawPalette();
     });
     $("palette-categories").append(button);
   }
+  let drawn = false;
   $("palette-open").addEventListener("click", () => {
-    remember();
-    $("palette-search").value = "";
-    category = "structures";
-    limit = 60;
-    drawPalette();
-    $("palette-dialog").showModal();
-    $("palette-search").focus();
+    const open = $("palette-panel").hidden;
+    $("palette-panel").hidden = !open;
+    $("palette-open").setAttribute("aria-expanded", String(open));
+    $("palette-open").textContent = open ? "Réduire les symboles" : "Tous les symboles";
+    if (open && !drawn) {
+      drawn = true;
+      drawPalette();
+    }
   });
   $("palette-search").addEventListener("input", () => {
-    category = "all";
     limit = 60;
     drawPalette();
+  });
+  $("palette-clear").addEventListener("click", () => {
+    $("palette-search").value = "";
+    drawPalette();
+    $("palette-search").focus();
   });
   $("palette-more").addEventListener("click", () => {
     limit += 60;

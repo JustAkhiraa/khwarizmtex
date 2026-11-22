@@ -17,8 +17,91 @@
   background: var(--tint);
   border-color: var(--accent);
 }
-.wide-dialog {
-  width: min(900px, calc(100% - 24px));
+.palette-panel {
+  display: grid;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  max-height: min(340px, 45vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.palette-panel[hidden],
+.recent-row[hidden] {
+  display: none;
+}
+.palette-search-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.palette-search-row .search {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+.palette-count {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted, inherit);
+}
+.palette-panel .symbol-grid {
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 6px;
+  margin-bottom: 0;
+}
+.palette-panel .symbol-card {
+  padding: 8px 6px;
+  gap: 4px;
+  min-height: 44px;
+}
+.palette-panel .symbol-preview {
+  font-size: 18px;
+  min-height: 30px;
+}
+.recent-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.recent-label {
+  font-size: 12px;
+  font-weight: 600;
+  flex: none;
+}
+.recent-list {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  min-width: 0;
+  scrollbar-width: thin;
+}
+.recent-chip {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  display: grid;
+  place-items: center;
+}
+.recent-chip:hover,
+.recent-chip:focus-visible {
+  background: var(--tint);
+  border-color: var(--accent);
+}
+.recent-chip .symbol-preview {
+  font-size: 17px;
+  min-height: 0;
+  overflow: hidden;
+}
+#palette-open[aria-expanded="true"] {
+  background: var(--tint);
+  border-color: var(--accent);
 }
 .category-tabs {
   display: flex;
@@ -198,9 +281,22 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .category-tabs {
-    max-height: 155px;
-    overflow: auto;
+    flex-wrap: nowrap;
+    overflow-x: auto;
     padding: 3px;
+  }
+  .category-tabs button {
+    flex: none;
+  }
+  .palette-panel {
+    padding: 8px 10px;
+    max-height: 40vh;
+  }
+  .palette-panel .symbol-grid {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  }
+  .recent-row {
+    padding: 6px 10px;
   }
   .category-tabs button {
     min-height: 44px;
@@ -226,6 +322,8 @@
   }
 }
 @media print {
+  .palette-panel,
+  .recent-row,
   .extended-tools {
     display: none !important;
   }
