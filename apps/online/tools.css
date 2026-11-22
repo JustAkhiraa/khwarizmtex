@@ -328,3 +328,187 @@
     display: none !important;
   }
 }
+
+/* Favoris : une étoile à côté de chaque outil, accessible au clavier et au toucher. */
+.symbol-item {
+  position: relative;
+  min-width: 0;
+  display: grid;
+}
+.symbol-item .symbol-card {
+  width: 100%;
+}
+.pin-button {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1;
+  opacity: 0.55;
+}
+.pin-button[aria-pressed="true"] {
+  color: var(--accent);
+  opacity: 1;
+}
+.symbol-item:hover .pin-button,
+.pin-button:focus-visible {
+  opacity: 1;
+}
+.pin-button:hover {
+  background: var(--tint);
+}
+.palette-empty {
+  grid-column: 1 / -1;
+  margin: 6px 0;
+  color: var(--muted);
+}
+
+/* Menu « Plus » : les actions rares, hors du premier niveau. */
+.more-menu {
+  position: relative;
+}
+.more-menu summary {
+  list-style: none;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  padding: 8px 12px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+}
+.more-menu summary::-webkit-details-marker {
+  display: none;
+}
+.more-menu summary::after {
+  content: "▾";
+  margin-left: 6px;
+  font-size: 11px;
+}
+.more-menu[open] summary,
+.more-menu summary:hover {
+  background: var(--tint);
+  border-color: var(--accent);
+}
+.more-list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 190px;
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+.more-list button {
+  text-align: left;
+  width: 100%;
+}
+
+/* Saisie dans l'aperçu : la zone visée est entourée, le champ s'ouvre dessous. */
+.preview-surface {
+  position: relative;
+}
+#preview .khw-editable {
+  cursor: text;
+  border-radius: 3px;
+  outline: 1px dashed transparent;
+  outline-offset: 1px;
+  transition: outline-color 0.12s;
+}
+#preview .khw-editable:hover {
+  outline-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+#preview .khw-editing,
+#preview .khw-editing:hover {
+  outline: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.inplace-input {
+  position: absolute;
+  z-index: 5;
+  box-sizing: border-box;
+  height: 38px;
+  padding: 6px 8px;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  background: var(--panel);
+  color: inherit;
+  font: 16px/1.2 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.inplace-input:focus {
+  outline: none;
+}
+.inplace-input.invalid {
+  border-color: #c2410c;
+}
+@media (max-width: 800px) {
+  .pin-button {
+    width: 36px;
+    height: 36px;
+  }
+  .more-menu summary {
+    min-height: 44px;
+  }
+  .more-list button {
+    min-height: 44px;
+  }
+  .inplace-input {
+    height: 44px;
+  }
+}
+
+/* Ordinateur : l'aperçu reste visible quand la palette agrandit l'éditeur. */
+@media (min-width: 801px) {
+  .workspace {
+    overflow: clip;
+    align-items: start;
+  }
+  .editor-pane {
+    align-self: stretch;
+  }
+  .preview-pane {
+    position: sticky;
+    top: 12px;
+    max-height: calc(100vh - 24px);
+  }
+}
+@media print {
+  .more-menu,
+  .inplace-input,
+  #preview-edit {
+    display: none !important;
+  }
+  #preview .khw-editable,
+  #preview .khw-editing {
+    outline: none !important;
+    background: none !important;
+  }
+}
+@media (max-width: 800px) {
+  .preview-foot {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .preview-foot #render-status {
+    flex: 1 0 100%;
+  }
+  .preview-foot .button {
+    flex: 1 1 0;
+  }
+}

@@ -43,7 +43,7 @@ test("palette : recherche, sélection, insertion et annulation", async ({
   await page.locator("#palette-open").click();
   await expect(page.locator("#palette-categories")).toContainText("Tout (277)");
   await page.locator("#palette-search").fill("chevrons");
-  await expect(page.locator("#palette-grid button")).toHaveCount(1);
+  await expect(page.locator("#palette-grid .symbol-card")).toHaveCount(1);
   await page.getByRole("button", { name: "Chevrons", exact: true }).click();
   await expect(page.locator("#source")).toHaveValue(
     "\\left\\langle ab\\right\\rangle",

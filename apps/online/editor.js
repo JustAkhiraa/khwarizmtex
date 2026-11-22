@@ -152,6 +152,21 @@ export function bindEditor(
     } else if (!suggestions.hidden && ["Tab", "Enter"].includes(event.key)) {
       event.preventDefault();
       accept(active);
+    } else if (
+      event.key === "Tab" &&
+      !event.altKey &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      source.value.includes("□")
+    ) {
+      // Tab passe au □ suivant (Maj+Tab : précédent) ; sans □, navigation normale.
+      const value = source.value;
+      const at = event.shiftKey
+        ? value.lastIndexOf("□", source.selectionStart - 1)
+        : value.indexOf("□", source.selectionEnd);
+      if (at < 0 || (event.shiftKey && source.selectionStart === 0)) return;
+      event.preventDefault();
+      source.setSelectionRange(at, at + 1);
     } else if (event.key === "Escape") close();
   });
   source.addEventListener("blur", () =>

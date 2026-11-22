@@ -29,6 +29,8 @@ const onlineFiles = [
   "tools.js",
   "imports.js",
   "recents.js",
+  "slots.js",
+  "preview-edit.js",
 ];
 for (const name of onlineFiles) {
   files.set("/online/" + name, [

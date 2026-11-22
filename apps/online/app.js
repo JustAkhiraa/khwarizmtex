@@ -11,6 +11,7 @@ import {
 import { renderDocument } from "./document.js";
 import { bindEditor } from "./editor.js";
 import { bindTools } from "./tools.js";
+import { bindPreviewEditor } from "./preview-edit.js";
 import { bindImports } from "./imports.js";
 import { download, filename, copyText, mathml } from "./exports.js";
 
@@ -50,6 +51,7 @@ let renderTimer;
 let saveTimer;
 let toastTimer;
 let zoom = 1;
+let previewEditor = null;
 
 function notify(message) {
   clearTimeout(toastTimer);
@@ -129,6 +131,7 @@ function render() {
       }).errors;
     }
     showErrors(errors);
+    previewEditor?.decorate();
     $("render-status").textContent = errors.length
       ? errors.length + " point(s) à vérifier"
       : "Rendu en " +
@@ -163,7 +166,7 @@ function syncView() {
   $("export-mathml").hidden = isDocument;
   $("source-help").textContent = isDocument
     ? "Titres # · Maths $…$ · Blocs $$ sur lignes séparées"
-    : "Une commande commence par \\ · Tab pour compléter";
+    : "Une commande commence par \\ · Tab : compléter ou □ suivant";
   $("character-count").textContent =
     source.value.length.toLocaleString("fr") + " car.";
   document
@@ -175,6 +178,7 @@ function syncView() {
       ),
     );
   editor.close();
+  previewEditor?.close();
   historyButtons();
   render();
 }
@@ -198,6 +202,27 @@ const editor = bindEditor(
   () => state.mode,
 );
 bindTools(editor, source, engine, notify, edit);
+// Une frappe dans l'aperçu passe par le même chemin qu'une frappe à gauche :
+// même historique (regroupé), même sauvegarde, rendu immédiat.
+previewEditor = bindPreviewEditor({
+  preview: $("preview"),
+  surface: $("preview-surface"),
+  source,
+  engine,
+  getMode: () => state.mode,
+  notify,
+  launcher: $("preview-edit"),
+  flush: () => render(),
+  apply(start, end, text) {
+    if (source.value.length - (end - start) + text.length > 50000) {
+      notify("La limite de 50 000 caractères est atteinte.");
+      return;
+    }
+    source.setRangeText(text, start, end, "end");
+    edit(true);
+    render();
+  },
+});
 bindImports((imported) => {
   if (imported.kind === "backup") {
     for (const mode of ["formula", "document"])

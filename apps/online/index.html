@@ -186,14 +186,20 @@
                 </button>
                 <button type="button" id="matrix-open">Matrices</button>
                 <button type="button" id="appearance-open">Présentation</button>
-                <button
-                  type="button"
-                  id="join-lines"
-                  title="Remplacer les retours de ligne par des espaces"
-                >
-                  Joindre les lignes
-                </button>
+                <details class="more-menu" id="more-menu">
+                  <summary>Plus</summary>
+                  <div class="more-list">
+                    <button
+                      type="button"
+                      id="join-lines"
+                      title="Remplacer les retours de ligne par des espaces"
+                    >
+                      Joindre les lignes
+                    </button>
+                  </div>
+                </details>
               </div>
+              <p class="sr-only" id="tool-status" role="status" aria-live="polite"></p>
               <div class="recent-row" id="recent-row" hidden>
                 <span class="recent-label" id="recent-label">Récents</span>
                 <div
@@ -303,6 +309,15 @@
               </div>
               <div class="preview-foot">
                 <span id="render-status" role="status">Prêt à écrire</span
+                ><button
+                  type="button"
+                  class="button quiet small"
+                  id="preview-edit"
+                  title="Ou cliquez directement sur un numérateur, un dénominateur ou une racine"
+                  hidden
+                >
+                  Modifier dans l’aperçu
+                </button
                 ><button type="button" class="button quiet small" id="copy">
                   Copier la source
                 </button>

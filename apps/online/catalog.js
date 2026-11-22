@@ -1,9 +1,103 @@
 // Catalogue de commandes réellement prises en charge par le moteur.
+// Noms français et synonymes : on retrouve un outil sans connaître sa commande.
+// Le premier nom devient l'étiquette visible, les suivants servent à la recherche.
+const FRENCH = {
+  lt: "inférieur strict|plus petit que",
+  gt: "supérieur strict|plus grand que",
+  leq: "inférieur ou égal|plus petit ou égal|inferieur",
+  geq: "supérieur ou égal|plus grand ou égal|superieur",
+  leqslant: "inférieur ou égal incliné|inferieur",
+  geqslant: "supérieur ou égal incliné|superieur",
+  neq: "différent|non égal",
+  equiv: "équivalent|congru|identique",
+  approx: "environ égal|approximation|à peu près",
+  sim: "équivalent asymptotique|tilde",
+  propto: "proportionnel",
+  ll: "très inférieur",
+  gg: "très supérieur",
+  perp: "perpendiculaire|orthogonal",
+  parallel: "parallèle",
+  therefore: "donc",
+  because: "car|parce que",
+  coloneqq: "défini par|définition",
+  in: "appartient|élément de",
+  notin: "n'appartient pas",
+  subset: "inclus strictement|sous-ensemble",
+  subseteq: "inclus|sous-ensemble",
+  supset: "contient strictement",
+  supseteq: "contient",
+  emptyset: "ensemble vide|vide",
+  varnothing: "ensemble vide rond|vide",
+  cup: "union|réunion",
+  cap: "intersection|inter",
+  setminus: "privé de|différence d'ensembles",
+  bigcup: "grande union|réunion",
+  bigcap: "grande intersection",
+  forall: "pour tout|quel que soit",
+  exists: "il existe",
+  nexists: "il n'existe pas",
+  neg: "non logique|négation",
+  land: "et logique",
+  lor: "ou logique",
+  rightarrow: "flèche droite|tend vers",
+  leftarrow: "flèche gauche",
+  leftrightarrow: "flèche double",
+  Rightarrow: "implique|implication",
+  Leftarrow: "est impliqué par|réciproque",
+  Leftrightarrow: "équivalent|si et seulement si|équivalence",
+  Longrightarrow: "implique long",
+  Longleftrightarrow: "équivalence longue",
+  mapsto: "associe|fonction flèche",
+  pm: "plus ou moins",
+  mp: "moins ou plus",
+  times: "multiplié|fois|produit|croix",
+  div: "divisé|division",
+  cdot: "point multiplié|produit scalaire|fois",
+  circ: "rond composée|composition",
+  nabla: "nabla|gradient",
+  partial: "d rond|dérivée partielle",
+  infty: "infini",
+  hbar: "h barre|constante de planck réduite",
+  degree: "degré",
+  prime: "prime|dérivée",
+  ldots: "points de suspension",
+  cdots: "points centrés",
+  angle: "angle",
+  triangle: "triangle",
+};
+const KEYWORDS = {
+  "\\frac{□}{□}": "quotient division sur",
+  "□^{□}": "carré cube exposant",
+  "□_{□}": "indice bas",
+  "\\sqrt{□}": "racine",
+  "\\sqrt[□]{□}": "racine cubique",
+  "\\sum_{n=1}^{□} □": "sigma série",
+  "\\int_{0}^{1} □\\,dx": "primitive aire",
+  "\\lim_{x\\to 0} □": "tend vers",
+  "\\frac{d}{dx} □": "dériver dérivation",
+  "\\frac{\\partial □}{\\partial x}": "dérivée d rond",
+  "\\vec{□}": "flèche",
+  "\\overrightarrow{□}": "vecteur AB flèche",
+  "\\mathbb{N}": "entiers naturels",
+  "\\mathbb{Z}": "entiers relatifs",
+  "\\mathbb{Q}": "rationnels",
+  "\\mathbb{R}": "réels ensemble réel",
+  "\\mathbb{C}": "complexes",
+  "\\left|□\\right|": "module",
+  "\\begin{cases} □ & x\\geq 0 \\\\ □ & x<0 \\end{cases}": "accolade conditions",
+};
 const symbols = (words) =>
   words
     .split(/\s+/)
     .filter(Boolean)
-    .map((name) => ({ label: name, source: "\\" + name + " " }));
+    .map((name) => {
+      const [label, ...others] = (FRENCH[name] || name).split("|");
+      return {
+        label,
+        source: "\\" + name + " ",
+        keywords: [name, ...others].join(" "),
+      };
+    });
 const templates = (rows) => rows.map(([label, source]) => ({ label, source }));
 export const CATEGORIES = [
   {
@@ -206,11 +300,14 @@ export const CATEGORIES = [
     ]),
   },
 ];
+// Identifiant durable : la famille et la source, pas la place dans la liste.
 export const CATALOG = CATEGORIES.flatMap((group) =>
   group.items.map((item, index) => ({
     ...item,
+    keywords: [item.keywords, KEYWORDS[item.source]].filter(Boolean).join(" "),
     category: group.id,
-    id: group.id + "-" + index,
+    id: group.id + ":" + item.source.trim(),
+    legacyId: group.id + "-" + index,
   })),
 );
 export const normalizeSearch = (text) =>
@@ -218,15 +315,33 @@ export const normalizeSearch = (text) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLocaleLowerCase("fr");
-export function searchCatalog(query, category = "all") {
-  const terms = normalizeSearch(query).split(/\s+/).filter(Boolean);
-  return CATALOG.filter(
-    (item) =>
-      (category === "all" || item.category === category) &&
-      terms.every((term) =>
-        normalizeSearch(item.label + " " + item.source).includes(term),
-      ),
-  );
+/**
+ * Cherche par nom français, synonyme, commande ou symbole affiché (`symbolOf`).
+ * Les correspondances exactes passent devant les débuts de mot, puis le reste.
+ */
+export function searchCatalog(query, category = "all", symbolOf = () => "") {
+  const raw = query.trim();
+  const terms = normalizeSearch(raw).split(/\s+/).filter(Boolean);
+  const scored = [];
+  for (const item of CATALOG) {
+    if (category !== "all" && item.category !== category) continue;
+    const symbol = symbolOf(item);
+    const names = [item.label, item.source.trim(), item.keywords, symbol];
+    const text = normalizeSearch(names.join(" "));
+    if (!terms.every((term) => text.includes(term))) continue;
+    const whole = normalizeSearch(raw);
+    let score = 2;
+    if (
+      (symbol && symbol === raw) ||
+      names.some((name) => normalizeSearch(name || "") === whole) ||
+      normalizeSearch(item.source.trim()) === "\\" + whole
+    )
+      score = 0;
+    else if (text.split(/[\s{}\\]+/).some((word) => word.startsWith(terms[0] || "")))
+      score = 1;
+    scored.push({ item, score });
+  }
+  return scored.sort((a, b) => a.score - b.score).map((entry) => entry.item);
 }
 export function matrixSource(rows, columns, environment, cells) {
   if (
