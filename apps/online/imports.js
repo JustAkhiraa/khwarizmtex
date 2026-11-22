@@ -188,7 +188,7 @@ export function bindImports(onImport) {
       if (current !== generation || active.signal.aborted) return;
       candidate = result;
       $("document-import-status").textContent =
-        file.name + " — prêt à importer";
+        file.name + " : prêt à importer";
       $("document-import-warning").textContent = result.warning;
       $("document-import-warning").hidden = false;
       $("document-import-preview").value =

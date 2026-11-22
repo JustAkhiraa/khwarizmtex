@@ -1,4 +1,4 @@
-# CLAUDE.md — Khwarizm
+# CLAUDE.md : Khwarizm
 
 ## 1. Identité du projet
 **Khwarizm** est un moteur de rendu mathématique moderne, open source et ultra-léger, inspiré du meilleur de KaTeX et MathJax ("Fusion++").
