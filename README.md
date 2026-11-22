@@ -2,6 +2,8 @@
 
 Un moteur tout neuf de rendu de formules mathématiques : soigné, rapide et sans dépendance.
 
+**Essayer en ligne : [justakhiraa.github.io/khwarizmtex](https://justakhiraa.github.io/khwarizmtex/)**
+
 Synchrone, sans dépendance à l'exécution, utilisable côté serveur comme dans le navigateur. Rien n'est chargé depuis Internet : ni script, ni police, ni icône.
 
 ## Démarrer
