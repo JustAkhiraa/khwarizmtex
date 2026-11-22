@@ -303,12 +303,19 @@
               </div>
               <div class="preview-surface" id="preview-surface">
                 <div id="preview" class="formula-preview"></div>
+                <div class="coach" id="coach" hidden>
+                  <span aria-hidden="true">✎</span>
+                  <p>Astuce : touchez un nombre de l’aperçu pour le modifier ici.</p>
+                  <button type="button" class="icon-button" id="coach-close" aria-label="Fermer l’astuce">×</button>
+                </div>
                 <div class="preview-caption" id="preview-caption">
                   La beauté d’une idée, dans sa forme la plus simple.
                 </div>
               </div>
               <div class="preview-foot">
                 <span id="render-status" role="status">Prêt à écrire</span
+                ><span class="complete-badge" id="complete-badge" role="status" hidden
+                  >✓ Formule complète</span
                 ><button
                   type="button"
                   class="button quiet small"

@@ -22,8 +22,10 @@ describe("zones modifiables depuis l'aperçu", () => {
     expect(slots[2].parts.map((p) => src.slice(p.start, p.end))).toEqual(["3", "c"]);
   });
   it("refuse les arguments sans accolades et ignore les commentaires", () => {
-    const [slot] = findSlots("\\frac12");
+    const [slot] = findSlots("\\frac\\alpha\\beta");
     expect(slot.parts.every((p) => p.start === -1)).toBe(true);
+    const [digits] = findSlots("\\frac12");
+    expect(replacePart("\\frac12", digits.parts[1], "12")).toBe("\\frac1{12}");
     expect(findSlots("x % \\frac{a}{b}")).toEqual([]);
     expect(findSlots("50 % \\frac{a}{b}", { comments: false })).toHaveLength(1);
     expect(findSlots("\\fracture{a}{b}")).toEqual([]);
@@ -45,5 +47,17 @@ describe("recherche sans connaître la commande", () => {
     const symbolOf = (item) => (item.source === "\\leq " ? "≤" : "");
     expect(searchCatalog("≤", "all", symbolOf)[0].source).toBe("\\leq ");
     expect(searchCatalog("\\leq")[0].source).toBe("\\leq ");
+  });
+});
+describe("exposants et indices", () => {
+  it("relie ^{…}, _{…} et x^2, et ajoute les accolades si besoin", () => {
+    const src = "x^2+a_{n}";
+    const [sup, sub] = findSlots(src);
+    expect([sup.kind, sub.kind]).toEqual(["sup", "sub"]);
+    expect(replacePart(src, sup.parts[0], "10")).toBe("x^{10}+a_{n}");
+    expect(replacePart(src, sup.parts[0], "3")).toBe("x^3+a_{n}");
+    expect(replacePart(src, sub.parts[0], "")).toBe("x^2+a_{□}");
+    expect(findSlots("x^\\alpha")[0].parts[0].start).toBe(-1);
+    expect(findSlots("a\\_b")).toEqual([]);
   });
 });

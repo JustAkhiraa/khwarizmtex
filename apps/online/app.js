@@ -52,6 +52,43 @@ let saveTimer;
 let toastTimer;
 let zoom = 1;
 let previewEditor = null;
+let hadHoles = false;
+let renderPending = false;
+let celebrateTimer;
+// Petit moment de réussite : une formule dont tous les □ sont remplis, sans erreur.
+function celebrate() {
+  const surface = $("preview-surface");
+  clearTimeout(celebrateTimer);
+  surface.classList.remove("celebrate");
+  void surface.offsetWidth;
+  surface.classList.add("celebrate");
+  $("complete-badge").hidden = false;
+  celebrateTimer = setTimeout(() => {
+    surface.classList.remove("celebrate");
+    $("complete-badge").hidden = true;
+  }, 2200);
+}
+function showEmpty(preview) {
+  const box = document.createElement("div");
+  box.className = "empty-state";
+  const mark = document.createElement("span");
+  mark.className = "empty-mark";
+  mark.setAttribute("aria-hidden", "true");
+  mark.textContent = "∑";
+  const line = document.createElement("p");
+  line.textContent =
+    state.mode === "document"
+      ? "Une page blanche, tout est possible."
+      : "Votre formule apparaîtra ici.";
+  const hint = document.createElement("p");
+  hint.className = "empty-hint";
+  hint.textContent =
+    state.mode === "document"
+      ? "Écrivez un titre avec #, puis vos maths entre $."
+      : "Choisissez un symbole ci-dessus, ou tapez \\frac.";
+  box.append(mark, line, hint);
+  preview.replaceChildren(box);
+}
 
 function notify(message) {
   clearTimeout(toastTimer);
@@ -64,6 +101,7 @@ function notify(message) {
 function persist() {
   clearTimeout(saveTimer);
   const saved = saveState(storage, state);
+  $("save-status").classList.toggle("saved", saved);
   $("save-status").textContent = saved
     ? "Enregistré sur cet appareil"
     : "Sauvegarde indisponible";
@@ -74,9 +112,11 @@ function persist() {
 }
 function schedule() {
   clearTimeout(renderTimer);
+  renderPending = true;
   renderTimer = setTimeout(render, 100);
   clearTimeout(saveTimer);
   saveTimer = setTimeout(persist, 250);
+  $("save-status").classList.remove("saved");
   $("save-status").textContent = "Enregistrement…";
 }
 function historyButtons() {
@@ -110,6 +150,7 @@ function showErrors(errors) {
 }
 function render() {
   clearTimeout(renderTimer);
+  renderPending = false;
   const start = performance.now();
   const preview = $("preview");
   try {
@@ -130,8 +171,15 @@ function render() {
         maxExpand: 500,
       }).errors;
     }
+    if (!source.value.trim()) {
+      showEmpty(preview);
+      $("coach").hidden = true;
+    }
     showErrors(errors);
     previewEditor?.decorate();
+    const holes = source.value.includes("□");
+    if (hadHoles && !holes && !errors.length && source.value.trim()) celebrate();
+    hadHoles = holes;
     $("render-status").textContent = errors.length
       ? errors.length + " point(s) à vérifier"
       : "Rendu en " +
@@ -179,6 +227,7 @@ function syncView() {
     );
   editor.close();
   previewEditor?.close();
+  hadHoles = false;
   historyButtons();
   render();
 }
@@ -213,6 +262,7 @@ previewEditor = bindPreviewEditor({
   notify,
   launcher: $("preview-edit"),
   flush: () => render(),
+  pending: () => renderPending,
   apply(start, end, text) {
     if (source.value.length - (end - start) + text.length > 50000) {
       notify("La limite de 50 000 caractères est atteinte.");

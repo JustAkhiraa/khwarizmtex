@@ -93,3 +93,24 @@ test("menu Plus : Joindre les lignes reste accessible", async ({ page }) => {
   await page.keyboard.press("Escape");
   await expect(page.locator("#join-lines")).toBeHidden();
 });
+
+test("réussite : remplir le dernier □ affiche « Formule complète »", async ({ page }) => {
+  await page.fill("#source", "\\frac{1}{□}");
+  await page.locator('#preview [data-slot="frac:0:den"]').click();
+  await page.keyboard.type("2");
+  await expect(page.locator("#complete-badge")).toBeVisible();
+  await expect(page.locator("#coach")).toBeHidden();
+});
+
+test("aperçu : l'exposant x^2 devient x^{10}", async ({ page }) => {
+  await page.fill("#source", "x^2");
+  await page.locator('#preview [data-slot="sup:0:sup"]').click();
+  await page.keyboard.press("ControlOrMeta+a");
+  await page.keyboard.type("10");
+  await expect(page.locator("#source")).toHaveValue("x^{10}");
+});
+
+test("accueil : une source vide reste accueillante", async ({ page }) => {
+  await page.fill("#source", "");
+  await expect(page.locator("#preview .empty-state")).toContainText("Votre formule apparaîtra ici");
+});

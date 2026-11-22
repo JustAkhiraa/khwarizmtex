@@ -35,6 +35,9 @@ function argument(src, i) {
     const name = /^\\(?:[a-zA-Z]+|.)/.exec(src.slice(i));
     return { start: -1, end: -1, next: i + (name ? name[0].length : 1) };
   }
+  // x^2 : un seul caractère, modifiable ; il reçoit des accolades s'il s'allonge.
+  if (i < src.length && /[^\s{}^_&%$#~]/.test(src[i]))
+    return { start: i, end: i + 1, next: i + 1, bare: true };
   return { start: -1, end: -1, next: i + 1 };
 }
 
@@ -53,6 +56,16 @@ export function findSlots(src, { comments = true } = {}) {
       while (i < src.length && src[i] !== "\n") i++;
       continue;
     }
+    if (c === "^" || c === "_") {
+      const arg = argument(src, i + 1);
+      if (arg)
+        slots.push({
+          kind: c === "^" ? "sup" : "sub",
+          at: i,
+          parts: [{ role: c === "^" ? "sup" : "sub", start: arg.start, end: arg.end, bare: arg.bare }],
+        });
+      continue;
+    }
     if (c !== "\\") continue;
     const name = /^\\([a-zA-Z]+)/.exec(src.slice(i, i + 40))?.[1];
     if (!name) {
@@ -68,8 +81,8 @@ export function findSlots(src, { comments = true } = {}) {
           kind: "frac",
           at: i,
           parts: [
-            { role: "num", start: num.start, end: num.end },
-            { role: "den", start: den.start, end: den.end },
+            { role: "num", start: num.start, end: num.end, bare: num.bare },
+            { role: "den", start: den.start, end: den.end, bare: den.bare },
           ],
         });
     } else if (name === "sqrt") {
@@ -93,8 +106,12 @@ export function findSlots(src, { comments = true } = {}) {
 }
 
 /** Remplace le contenu d'une partie ; une partie vidée redevient un emplacement □. */
+export function partText(part, text) {
+  if (text === "") return "□";
+  return part.bare && [...text].length > 1 ? "{" + text + "}" : text;
+}
 export function replacePart(src, part, text) {
-  return src.slice(0, part.start) + (text === "" ? "□" : text) + src.slice(part.end);
+  return src.slice(0, part.start) + partText(part, text) + src.slice(part.end);
 }
 
 export const ROLE_NAMES = {
@@ -102,4 +119,6 @@ export const ROLE_NAMES = {
   den: "Dénominateur",
   radicand: "Contenu",
   index: "Indice",
+  sup: "Exposant",
+  sub: "Indice bas",
 };

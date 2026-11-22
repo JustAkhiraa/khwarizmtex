@@ -1,7 +1,7 @@
 // Saisie directe dans l'aperçu : un clic sur un numérateur, un dénominateur ou
 // une racine ouvre un petit champ à cet endroit ; chaque frappe réécrit la
 // portion exacte de la source, puis l'aperçu, la sauvegarde et l'historique suivent.
-import { findSlots, ROLE_NAMES } from "./slots.js";
+import { findSlots, partText, ROLE_NAMES } from "./slots.js";
 
 const DOM_PARTS = {
   frac: { selector: ".khw-frac", parts: { num: ".khw-num", den: ".khw-den" } },
@@ -9,8 +9,12 @@ const DOM_PARTS = {
     selector: ".khw-sqrt",
     parts: { radicand: ".khw-radicand", index: ".khw-root" },
   },
+  // L'exposant et l'indice sont la zone elle-même.
+  sup: { selector: "sup", parts: { sup: null } },
+  sub: { selector: "sub", parts: { sub: null } },
 };
-const EDITABLE = ".khw-num, .khw-den, .khw-radicand, .khw-root";
+const KIND_NAMES = { frac: " de la fraction ", sqrt: " de la racine ", sup: " ", sub: " " };
+const EDITABLE = ".khw-num, .khw-den, .khw-radicand, .khw-root, .khw-html sup, .khw-html sub";
 const squash = (text) => text.replace(/[\s​⁡-⁤]+/g, "");
 function balanced(text) {
   let depth = 0;
@@ -32,6 +36,7 @@ export function bindPreviewEditor({
   notify,
   launcher,
   flush,
+  pending,
 }) {
   const input = document.createElement("input");
   input.type = "text";
@@ -77,9 +82,10 @@ export function bindPreviewEditor({
         const box = elements[rank];
         for (const part of slot.parts) {
           if (part.start < 0) continue;
-          const el = [...box.children].find((child) =>
-            child.matches(spec.parts[part.role]),
-          );
+          const selector = spec.parts[part.role];
+          const el = selector
+            ? [...box.children].find((child) => child.matches(selector))
+            : box;
           if (!el) continue;
           const text = src.slice(part.start, part.end);
           // Le rendu de la portion doit correspondre à ce qui est affiché.
@@ -88,9 +94,7 @@ export function bindPreviewEditor({
           el.dataset.slot = key;
           el.classList.add("khw-editable");
           const label =
-            ROLE_NAMES[part.role] +
-            (kind === "frac" ? " de la fraction " : " de la racine ") +
-            (rank + 1);
+            ROLE_NAMES[part.role] + KIND_NAMES[kind] + (rank + 1);
           el.title = label + " : cliquer pour modifier";
           zones.push({ key, el, part, label, at: slot.at });
         }
@@ -98,6 +102,7 @@ export function bindPreviewEditor({
     }
     zones.sort((a, b) => a.part.start - b.part.start);
     launcher.hidden = zones.length === 0;
+    if (zones.length) coach();
     if (current) {
       const zone = zones.find((z) => z.key === current);
       if (!zone) close(false);
@@ -126,7 +131,7 @@ export function bindPreviewEditor({
     input.style.left = left + "px";
     // Au-dessus pour le haut d'une structure, dessous pour le bas :
     // le champ ne recouvre jamais l'autre zone de la même fraction.
-    const above = zone.part.role === "num" || zone.part.role === "index";
+    const above = ["num", "index", "sup"].includes(zone.part.role);
     const height = input.offsetHeight || 38;
     const top = above
       ? Math.max(2, box.top - frame.top + surface.scrollTop - height - 6)
@@ -139,6 +144,8 @@ export function bindPreviewEditor({
     }
   }
   function open(key) {
+    // Un rendu encore en attente décrirait l'ancienne source : on le fait d'abord.
+    if (pending()) flush();
     const zone = zones.find((z) => z.key === key);
     if (!zone) return;
     current = key;
@@ -161,8 +168,7 @@ export function bindPreviewEditor({
       return;
     }
     input.classList.remove("invalid");
-    const text = input.value === "" ? "□" : input.value;
-    apply(zone.part.start, zone.part.end, text);
+    apply(zone.part.start, zone.part.end, partText(zone.part, input.value));
   });
   input.addEventListener("keydown", (event) => {
     if (event.isComposing) return;
@@ -201,8 +207,7 @@ export function bindPreviewEditor({
       );
   });
   launcher.addEventListener("click", () => {
-    // Un rendu encore en attente décrirait l'ancienne source : on le fait d'abord.
-    flush();
+    if (pending()) flush();
     const after = zones.find((z) => z.part.end >= source.selectionStart);
     open((after || zones[0])?.key);
   });
@@ -210,5 +215,28 @@ export function bindPreviewEditor({
     const zone = zones.find((z) => z.key === current);
     if (zone) show(zone, false);
   });
+  // Astuce affichée une seule fois, la première fois qu'une zone est modifiable.
+  const COACH = "khwarizm-online-coach";
+  let coached = false;
+  function coach() {
+    if (coached) return;
+    coached = true;
+    try {
+      if (localStorage.getItem(COACH)) return;
+    } catch {
+      return;
+    }
+    document.getElementById("coach").hidden = false;
+  }
+  function dismissCoach() {
+    document.getElementById("coach").hidden = true;
+    try {
+      localStorage.setItem(COACH, "1");
+    } catch {
+      /* Rien à retenir. */
+    }
+  }
+  document.getElementById("coach-close").addEventListener("click", dismissCoach);
+  input.addEventListener("focus", dismissCoach);
   return { decorate, close: () => close(false) };
 }
