@@ -121,7 +121,7 @@ function automaticTag(value: string): TagNode {
 function copyButton(): VElement {
   return el(
     'button',
-    { type: 'button', class: 'khw-copy', 'aria-label': 'Copier la formule LaTeX', title: 'Copier la formule LaTeX' },
+    { type: 'button', class: 'khw-copy', 'aria-label': 'Copier la source de la formule', title: 'Copier la source de la formule' },
     [
       el('svg', { xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 16 16', 'aria-hidden': 'true', focusable: 'false' }, [
         el('g', { class: 'khw-copy-icon' }, [
@@ -138,7 +138,7 @@ function renderTree(source: string, o: ReturnType<typeof resolveOptions>, parsed
   const { ast, errors } = parsed;
   const metadata = equationMetadata(ast);
   const tag = metadata.tag ?? addedTag;
-  // Le tag synthétique doit aussi faire partie du MathML, même s'il n'occupe
+  // Le tag synthétique doit aussi faire partie du balisage natif, même s'il n'occupe
   // pas d'espace dans la couche HTML (où il est placé à droite par le conteneur).
   const mathAst = addedTag ? [...ast, addedTag] : ast;
   const children: VNode[] = [];

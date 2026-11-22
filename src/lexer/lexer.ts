@@ -1,5 +1,5 @@
 /**
- * Analyse lexicale : la source LaTeX devient une suite de jetons.
+ * Analyse lexicale : la source devient une suite de jetons.
  *
  * Lecture caractère par caractère, sans expression régulière : le temps est
  * linéaire quelle que soit l'entrée. Les caractères hors du plan de base

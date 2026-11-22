@@ -1,7 +1,7 @@
 /**
  * Alphabets mathématiques Unicode (bloc U+1D400) : ℝ, 𝔉, 𝒜, 𝐱...
  *
- * MathML Core recommande ces caractères plutôt que l'attribut mathvariant.
+ * La norme du balisage natif recommande ces caractères plutôt que l'attribut mathvariant.
  * Le rendu HTML s'en sert pour \mathbb, \mathcal et \mathfrak, qu'aucune
  * propriété CSS ne sait produire.
  */

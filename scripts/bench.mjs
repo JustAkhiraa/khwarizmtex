@@ -19,4 +19,4 @@ const t0 = performance.now();
 for (let i = 0; i < rounds; i++) for (const f of formulas) renderToString(f, { displayMode: true });
 const ms = performance.now() - t0;
 const per = (ms * 1000) / (rounds * formulas.length);
-console.log(`${rounds * formulas.length} formules en ${ms.toFixed(0)} ms : ${per.toFixed(1)} µs par formule (HTML + MathML).`);
+console.log(`${rounds * formulas.length} formules en ${ms.toFixed(0)} ms : ${per.toFixed(1)} µs par formule (HTML + balisage natif).`);

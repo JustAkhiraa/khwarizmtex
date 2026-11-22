@@ -62,7 +62,7 @@ function clampByte(n: number): number {
 }
 
 /**
- * Couleur LaTeX → couleur CSS sûre, ou null.
+ * Couleur de la source → couleur CSS sûre, ou null.
  * Modèles : nom (red), #rgb/#rrggbb, [HTML]{FF8800}, [rgb]{1,0.5,0}, [RGB]{255,128,0}, [gray]{0.5}.
  */
 export function parseColor(value: string, model?: string): string | null {

@@ -206,7 +206,7 @@ test("PDF : extrait localement, avertit sur les formules et refuse une page sans
     /E = mc2. Cours de physique/,
   );
   await expect(page.locator("#document-import-warning")).toContainText(
-    "pas de conversion mathématique en LaTeX",
+    "pas de conversion mathématique en source",
   );
   await page.locator("#document-import-confirm").click();
   await expect(page.locator("#source")).toHaveValue(/## Page 1/);

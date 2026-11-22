@@ -1,4 +1,4 @@
-# Compatibilité LaTeX
+# Compatibilité des commandes
 
 Cette matrice décrit le comportement réellement testé par KhwarizmTeX 0.1.x.
 Elle décrit un corpus testé et ses limites, pas une certification de conformité
@@ -25,11 +25,11 @@ typographique à TeX ou une validation par des lecteurs d'écran.
 
 | Commande | État | Notes |
 | --- | --- | --- |
-| `\tag`, `\tag*` | Partiel | Un seul tag par formule, à droite en HTML ; dans l'expression en MathML. |
+| `\tag`, `\tag*` | Partiel | Un seul tag par formule, à droite en HTML ; dans l'expression en balisage natif. |
 | `\label` | Complet | Ajoute une ancre stable `khw-eq-…` au rendu. |
 | `\ref`, `\eqref` | Complet | Référence liée ; `renderAll()` résout les références avant et arrière. |
 | `\notag`, `\nonumber` | Partiel | Désactivent le numéro automatique pour toute la formule ; un tag explicite reste prioritaire. |
-| `\href`, `\url` | Partiel | Activation `trustLinks`, HTTP(S)/mailto/fragments seulement ; liens HTML complémentaires en sortie MathML. |
+| `\href`, `\url` | Partiel | Activation `trustLinks`, HTTP(S)/mailto/fragments seulement ; liens HTML complémentaires en sortie balisage seul. |
 
 ## Typographie et sémantique
 
@@ -39,7 +39,7 @@ typographique à TeX ou une validation par des lecteurs d'écran.
 | `\mathbb`, `\mathcal`, `\mathfrak`, `\mathbf`, `\text` | Complet | Variantes Unicode et textes. |
 | Accents, sur/sous-flèches, `\overset`, `\underset` | Complet | Versions extensibles incluses. |
 | `\color`, `\textcolor` | Complet | Couleurs validées par liste blanche. |
-| MathML | Partiel | Généré seul ou parallèlement au HTML ; certaines constructions dépendent du navigateur. |
+| Balisage natif | Partiel | Généré seul ou parallèlement au HTML ; certaines constructions dépendent du navigateur. |
 
 ## Hors périmètre actuel
 

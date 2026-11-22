@@ -1,6 +1,6 @@
 /**
  * Copier la formule :
- * - clic sur le petit bouton (option copyButton) : le LaTeX va au presse-papiers ;
+ * - clic sur le petit bouton (option copyButton) : la source va au presse-papiers ;
  * - sélection de texte contenant des formules puis Ctrl+C : chaque formule
  *   est remplacée par sa source $...$ (au lieu du texte doublé des deux couches).
  */
@@ -61,7 +61,7 @@ export function enableCopy(doc: Document = document): void {
       button.setAttribute('aria-label', 'Formule copiée');
       setTimeout(() => {
         math.classList.remove('khw-copied');
-        button.setAttribute('aria-label', 'Copier la formule LaTeX');
+        button.setAttribute('aria-label', 'Copier la source de la formule');
       }, 1600);
     });
   });

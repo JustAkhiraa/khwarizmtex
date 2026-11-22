@@ -1,10 +1,10 @@
 /**
- * Moteur MathML Core.
+ * Moteur du balisage natif.
  *
  * Sert de couche d'accessibilité (lecteurs d'écran, copier-coller sémantique)
  * sous le rendu HTML, ou de sortie principale (output: 'mathml').
  * Les variantes de police passent par les alphabets mathématiques Unicode,
- * comme le recommande MathML Core.
+ * comme le recommande la norme du balisage natif.
  */
 import { atomClass, reclassify } from '../ast/classes';
 import type { ArrayNode, MathNode, MathStyle, MathVariant, ScriptsNode, SymbolNode } from '../ast/nodes';
@@ -13,7 +13,7 @@ import { el, type VElement, type VNode } from './vnode';
 
 export interface MathMLOptions {
   display: boolean;
-  /** Source LaTeX, jointe en annotation (application/x-tex). */
+  /** Source de la formule, jointe en annotation (application/x-tex). */
   source: string;
 }
 
@@ -110,7 +110,7 @@ function symbol(node: SymbolNode, unary: boolean): VElement {
   }
   if (node.role === 'mi') {
     const single = [...text].length === 1;
-    // Une lettre seule est italique d'office en MathML ; on le désactive au besoin.
+    // Une lettre seule est italique d'office en balisage natif ; on le désactive au besoin.
     if (single && (variant === 'normal' || (variant === undefined && !isItalicByDefault(text)))) attrs['mathvariant'] = 'normal';
     return el('mi', attrs, [text]);
   }

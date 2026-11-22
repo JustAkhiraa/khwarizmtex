@@ -8,8 +8,8 @@ export interface RenderOptions {
   /** Formule centrée sur sa propre ligne (false : dans le texte). */
   displayMode?: boolean;
   /**
-   * 'htmlAndMathml' (défaut) : rendu HTML visible + MathML caché pour les
-   * lecteurs d'écran. 'html' : HTML seul. 'mathml' : MathML natif seul.
+   * 'htmlAndMathml' (défaut) : rendu HTML visible + balisage natif caché pour les
+   * lecteurs d'écran. 'html' : HTML seul. 'mathml' : balisage natif seul.
    */
   output?: OutputFormat;
   /** Lever une KhwarizmError à la première erreur au lieu de l'isoler (false). */
@@ -28,7 +28,7 @@ export interface RenderOptions {
   maxSize?: number;
   /** Possibilités de retour à la ligne après =, +, −, virgule (true). */
   lineBreaks?: boolean;
-  /** Petit bouton « copier le LaTeX » au survol (false). */
+  /** Petit bouton « copier la source » au survol (false). */
   copyButton?: boolean;
   /** Classe supplémentaire sur l'élément racine. */
   className?: string;

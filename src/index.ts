@@ -1,5 +1,5 @@
 /**
- * KhwarizmTeX : rendu de formules LaTeX en HTML/CSS et en MathML Core.
+ * KhwarizmTeX : rendu de formules en HTML/CSS et en balisage mathÃ©matique natif.
  *
  *   import { renderToString } from 'khwarizmtex';
  *   const html = renderToString('\\frac{a}{b}', { displayMode: true });

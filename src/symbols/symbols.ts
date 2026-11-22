@@ -1,5 +1,5 @@
 /**
- * Tables de symboles : commande LaTeX → caractère Unicode, classe d'atome, rôle.
+ * Tables de symboles : commande → caractère Unicode, classe d'atome, rôle.
  *
  * Les listes sont écrites par paires « nom caractère » pour rester lisibles ;
  * elles sont dépliées une seule fois au chargement du module.

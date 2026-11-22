@@ -3,8 +3,8 @@ import { renderToString } from '../src/render';
 
 const mathml = (s: string, display = false) => renderToString(s, { output: 'mathml', displayMode: display });
 
-describe('rendu MathML', () => {
-  it('produit du MathML Core avec la source en annotation', () => {
+describe('rendu en balisage natif', () => {
+  it('produit du balisage natif avec la source en annotation', () => {
     expect(mathml('x^2')).toMatchInlineSnapshot(
       `"<span class="khw khw-mathml-only" data-latex="x^2"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline" class="khw-mathml"><semantics><msup><mi>x</mi><mn>2</mn></msup><annotation encoding="application/x-tex">x^2</annotation></semantics></math></span>"`,
     );

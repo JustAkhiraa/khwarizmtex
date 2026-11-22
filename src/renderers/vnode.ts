@@ -73,7 +73,7 @@ export function toHTML(node: VNode): string {
   return out + '</' + node.tag + '>';
 }
 
-/** Construit le DOM réel, dans le bon espace de noms (HTML, SVG, MathML). */
+/** Construit le DOM réel, dans le bon espace de noms (HTML, SVG, balisage natif). */
 export function toDOM(node: VNode, doc: Document, ns: string | null = null): Node {
   if (typeof node === 'string') return doc.createTextNode(node);
   const childNs = node.tag === 'svg' ? SVG_NS : node.tag === 'math' ? MATHML_NS : ns;

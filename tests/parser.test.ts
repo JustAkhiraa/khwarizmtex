@@ -19,7 +19,7 @@ describe('parseur', () => {
     ]);
   });
 
-  it('prend un seul caractère comme argument, comme LaTeX (\\frac12)', () => {
+  it('prend un seul caractère comme argument, comme la notation classique (\\frac12)', () => {
     const [frac] = ast('\\frac12');
     expect(frac).toMatchObject({ type: 'frac', num: { text: '1' }, den: { text: '2' } });
   });

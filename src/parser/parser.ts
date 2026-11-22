@@ -433,7 +433,7 @@ export class Parser {
   /**
    * Un élément sans ses exposants : caractère, groupe, commande.
    * `single` : un seul caractère (pas de regroupement de chiffres), comme
-   * l'argument de x^12 (seul le 1 monte, comme en LaTeX).
+   * l'argument de x^12 (seul le 1 monte, comme dans la notation classique).
    */
   parsePrimary(single: boolean): MathNode | null {
     const t = this.next();

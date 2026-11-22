@@ -44,7 +44,7 @@ describe('références de document', () => {
     expect(parse('x\\tag{1}\\\\y\\tag{2}').errors[0]?.message).toMatch(/Un seul/);
   });
 
-  it('inclut le numéro automatique dans le MathML sans activer la grille HTML', () => {
+  it('inclut le numéro automatique dans le balisage natif sans activer la grille HTML', () => {
     const out = renderAll(['x\\label{a}'], { output: 'mathml', displayMode: true }).html[0];
     expect(out).toContain('<mtext>1</mtext>');
     expect(out).not.toContain('khw-has-tag');

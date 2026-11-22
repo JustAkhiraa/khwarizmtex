@@ -1,5 +1,5 @@
 /**
- * Macros intégrées : des raccourcis écrits en LaTeX ordinaire.
+ * Macros intégrées : des raccourcis écrits avec les commandes ordinaires.
  *
  * Elles se redéfinissent librement avec \newcommand (on ne bloque que les
  * commandes primitives comme \frac).
