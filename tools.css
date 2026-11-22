@@ -1,0 +1,232 @@
+.extended-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.extended-tools button {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  padding: 8px 10px;
+  min-height: 40px;
+  font-size: 13px;
+}
+.extended-tools button:hover {
+  background: var(--tint);
+  border-color: var(--accent);
+}
+.wide-dialog {
+  width: min(900px, calc(100% - 24px));
+}
+.category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.category-tabs button {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--bg);
+  padding: 8px 12px;
+  font-size: 14px;
+}
+.category-tabs [aria-pressed="true"] {
+  background: var(--tint);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.symbol-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.symbol-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 10px;
+}
+.symbol-card:hover {
+  background: var(--tint);
+  border-color: var(--accent);
+}
+.symbol-preview {
+  font-size: 21px;
+  min-height: 40px;
+  display: grid;
+  place-items: center;
+  max-width: 100%;
+  overflow: auto;
+}
+.symbol-label {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.tool-note {
+  background: var(--tint);
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: var(--ink) !important;
+}
+.matrix-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 24px;
+}
+.matrix-settings label,
+.tool-setting {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 14px;
+}
+.matrix-settings select,
+.tool-setting select {
+  font: inherit;
+  padding: 9px 28px 9px 10px;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  min-height: 44px;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) 50%,
+    calc(100% - 10px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+.matrix-scroll {
+  overflow-x: auto;
+  padding: 5px;
+}
+.matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--columns), minmax(60px, 1fr));
+  gap: 8px;
+}
+.matrix-grid input {
+  min-width: 0;
+  width: 100%;
+  padding: 10px 8px;
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  font:
+    16px ui-monospace,
+    monospace;
+}
+.tool-preview {
+  padding: 14px;
+  background: var(--canvas);
+  border-radius: 10px;
+  overflow: auto;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+.tool-setting {
+  margin: 24px 0 12px;
+}
+.tool-setting input[type="color"] {
+  width: 80px;
+  height: 44px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 6px;
+}
+.tool-setting input[type="range"] {
+  width: 100%;
+  min-height: 44px;
+}
+.formula-preview {
+  --khw-color: var(--preview-ink, inherit);
+  font-size: calc(var(--formula-size, 25px) * var(--zoom, 1));
+}
+.file-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  background: var(--tint);
+  border: 1px dashed var(--accent);
+  border-radius: 10px;
+  font-size: 14px;
+}
+.file-picker input {
+  max-width: 100%;
+  font-size: 14px;
+}
+#document-import-preview {
+  min-height: 160px;
+  max-height: 260px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 13px;
+}
+#matrix-error {
+  color: var(--ink);
+}
+@media (max-width: 800px) {
+  .extended-tools {
+    padding: 8px 10px;
+  }
+  .extended-tools button {
+    min-height: 44px;
+    font-size: 13px;
+    flex: 1 0 auto;
+  }
+  .symbol-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .category-tabs {
+    max-height: 155px;
+    overflow: auto;
+    padding: 3px;
+  }
+  .category-tabs button {
+    min-height: 44px;
+    font-size: 13px;
+  }
+  .dialog-actions .button {
+    flex: 1;
+  }
+  .matrix-settings {
+    gap: 9px;
+  }
+  .matrix-settings label {
+    flex: 1;
+  }
+  #document-import-preview {
+    font-size: 16px;
+  }
+  .workspace-controls > #document-import-open {
+    order: 4;
+  }
+  .formula-preview {
+    font-size: calc(var(--formula-size, 23px) * var(--zoom, 1));
+  }
+}
+@media print {
+  .extended-tools {
+    display: none !important;
+  }
+}
