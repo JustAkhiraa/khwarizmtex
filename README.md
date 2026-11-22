@@ -10,7 +10,10 @@ Synchrone, sans dépendance à l'exécution, utilisable côté serveur comme dan
 
 `npm run online` lance l’atelier sur `http://127.0.0.1:4173/online/` : modes
 Formule et Document, interface ordinateur/téléphone, sauvegarde locale,
-autocomplétion, galerie, partage de formules et exports. Le mode Document
+autocomplétion, palette de 277 choix, matrices personnalisées, partage et exports.
+Le bouton **Importer** ouvre les fichiers Markdown, texte, formules `.tex`,
+sauvegardes JSON et PDF. Les PDF fournissent du texte extrait, sans OCR ni
+reconstruction automatique des équations en LaTeX. Le mode Document
 compose texte et maths ; ce n’est pas un compilateur de projets LaTeX complets.
 Voir le [guide de l’atelier](apps/online/README.md).
 
@@ -25,7 +28,7 @@ La démo montre un éditeur en direct, le rendu HTML/CSS à côté du rendu nati
 
 Pour refaire la bibliothèque après une modification :
 
-Le développement utilise Node 22.12+ ou Node 24+. Les fichiers distribués du
+Le développement utilise Node 22.13+ ou Node 24+. Les fichiers distribués du
 moteur restent utilisables à partir de Node 18.
 
 ```bash

@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="engine/khwarizm.css" data-khwarizm />
     <link rel="stylesheet" href="engine/khwarizm-fonts.css" />
     <link rel="stylesheet" href="online.css" />
+    <link rel="stylesheet" href="tools.css" />
   </head>
   <body>
     <div class="shell">
@@ -126,6 +127,13 @@
             <button type="button" class="button quiet" id="share">
               Partager
             </button>
+            <button
+              type="button"
+              class="button quiet"
+              id="document-import-open"
+            >
+              Importer
+            </button>
             <button type="button" class="button primary" id="export-open">
               Exporter
             </button>
@@ -163,6 +171,24 @@
                 aria-label="Insérer une structure mathématique"
                 id="math-toolbar"
               ></div>
+              <div
+                class="extended-tools"
+                role="group"
+                aria-label="Outils mathématiques avancés"
+              >
+                <button type="button" id="palette-open">
+                  Tous les symboles
+                </button>
+                <button type="button" id="matrix-open">Matrices</button>
+                <button type="button" id="appearance-open">Présentation</button>
+                <button
+                  type="button"
+                  id="join-lines"
+                  title="Remplacer les retours de ligne par des espaces"
+                >
+                  Joindre les lignes
+                </button>
+              </div>
               <div class="source-wrap">
                 <label for="source" class="sr-only">Source</label
                 ><textarea
@@ -311,6 +337,14 @@
         recalculés après modification. Un numéro par bloc, pas encore par ligne
         d’un alignement.
       </p>
+      <h3>Importer ses documents</h3>
+      <p>
+        Le bouton Importer accepte Markdown, texte, formules .tex, sauvegardes
+        JSON et PDF. Vérifiez l’aperçu, puis confirmez le remplacement du
+        brouillon. Vous pourrez retrouver l’ancien contenu avec Annuler. Les PDF
+        fournissent du texte sélectionnable : les scans et la conversion
+        automatique des formules en LaTeX ne sont pas encore pris en charge.
+      </p>
       <h3>Raccourcis</h3>
       <p>
         <kbd>⌘ / Ctrl</kbd> + <kbd>Z</kbd> : annuler · <kbd>Maj</kbd> +
@@ -372,6 +406,196 @@
         accept=".json,application/json"
         hidden
       />
+    </dialog>
+    <dialog
+      id="palette-dialog"
+      class="wide-dialog"
+      aria-labelledby="palette-title"
+    >
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">VOTRE BOÎTE À OUTILS</p>
+          <h2 id="palette-title">Symboles et formules</h2>
+        </div>
+        <button
+          type="button"
+          class="icon-button"
+          data-close
+          aria-label="Fermer les symboles"
+        >
+          ×
+        </button>
+      </div>
+      <p>
+        Un clic insère à la position du curseur. Une sélection remplace le
+        premier carré du modèle.
+      </p>
+      <label class="sr-only" for="palette-search">Rechercher un symbole</label
+      ><input
+        id="palette-search"
+        class="search"
+        type="search"
+        placeholder="Chercher : alpha, dérivée, énergie, flèche…"
+      />
+      <div
+        id="palette-categories"
+        class="category-tabs"
+        role="group"
+        aria-label="Familles de symboles"
+      ></div>
+      <p id="science-note" class="tool-note" hidden>
+        Modèles chimiques en LaTeX standard. Pas encore de structures
+        moléculaires ni de syntaxe mhchem.
+      </p>
+      <p id="palette-count" role="status"></p>
+      <div id="palette-grid" class="symbol-grid"></div>
+      <button id="palette-more" class="button" type="button">
+        Afficher davantage
+      </button>
+    </dialog>
+    <dialog id="matrix-dialog" aria-labelledby="matrix-title">
+      <div class="dialog-head">
+        <h2 id="matrix-title">Construire une matrice</h2>
+        <button
+          type="button"
+          class="icon-button"
+          data-close
+          aria-label="Fermer la matrice"
+        >
+          ×
+        </button>
+      </div>
+      <div class="matrix-settings">
+        <label
+          >Lignes<select id="matrix-rows">
+            <option>1</option>
+            <option selected>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+          </select></label
+        ><label
+          >Colonnes<select id="matrix-columns">
+            <option>1</option>
+            <option selected>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+          </select></label
+        ><label
+          >Délimiteurs<select id="matrix-brackets">
+            <option value="pmatrix">Parenthèses ( )</option>
+            <option value="bmatrix">Crochets [ ]</option>
+            <option value="Bmatrix">Accolades { }</option>
+            <option value="vmatrix">Déterminant | |</option>
+            <option value="Vmatrix">Doubles barres ‖ ‖</option>
+            <option value="matrix">Sans délimiteurs</option>
+          </select></label
+        >
+      </div>
+      <p>
+        Chaque cellule accepte une expression LaTeX. Les cellules vides
+        deviennent des carrés à compléter.
+      </p>
+      <div class="matrix-scroll">
+        <div id="matrix-grid" class="matrix-grid"></div>
+      </div>
+      <p id="matrix-error" role="alert"></p>
+      <div id="matrix-preview" class="tool-preview"></div>
+      <div class="dialog-actions">
+        <button id="matrix-identity" class="button" type="button">
+          Remplir en identité</button
+        ><button id="matrix-insert" class="button primary" type="button">
+          Insérer la matrice
+        </button>
+      </div>
+    </dialog>
+    <dialog id="appearance-dialog" aria-labelledby="appearance-title">
+      <div class="dialog-head">
+        <h2 id="appearance-title">Présentation</h2>
+        <button
+          type="button"
+          class="icon-button"
+          data-close
+          aria-label="Fermer la présentation"
+        >
+          ×
+        </button>
+      </div>
+      <label class="tool-setting" for="formula-color"
+        >Couleur à insérer<input
+          type="color"
+          id="formula-color"
+          value="#6650d8" /></label
+      ><button type="button" id="apply-color" class="button">
+        Colorer la sélection ou insérer un modèle
+      </button>
+      <label class="tool-setting" for="preview-size"
+        >Taille de l’aperçu de formule
+        <output id="preview-size-value">25 px</output
+        ><input type="range" id="preview-size" min="12" max="48" value="25"
+      /></label>
+      <label class="tool-setting" for="preview-background"
+        >Fond de l’aperçu<select id="preview-background">
+          <option value="auto">Selon le thème</option>
+          <option value="white">Blanc</option>
+          <option value="ivory">Papier crème</option>
+          <option value="mint">Vert doux</option>
+          <option value="night">Bleu nuit</option>
+        </select></label
+      >
+      <p>
+        La couleur insérée fait partie du LaTeX. La taille et le fond concernent
+        seulement l’aperçu et ne sont pas sauvegardés. L’impression garde un
+        fond blanc. Les styles de texte sont dans « Tous les symboles ».
+      </p>
+    </dialog>
+    <dialog id="document-import-dialog" aria-labelledby="document-import-title">
+      <div class="dialog-head">
+        <h2 id="document-import-title">Importer un document</h2>
+        <button
+          type="button"
+          class="icon-button"
+          data-close
+          aria-label="Fermer l’import"
+        >
+          ×
+        </button>
+      </div>
+      <p>
+        Markdown, texte, formule LaTeX, sauvegarde JSON ou PDF avec texte
+        sélectionnable. Le traitement reste sur cet appareil.
+      </p>
+      <label class="file-picker" for="document-file"
+        >Choisir un fichier<input
+          id="document-file"
+          type="file"
+          accept=".md,.markdown,.txt,.tex,.json,.pdf"
+      /></label>
+      <p id="document-import-status" role="status">Aucun fichier choisi.</p>
+      <p id="document-import-warning" class="tool-note" hidden></p>
+      <label for="document-import-preview" class="sr-only"
+        >Contenu à importer</label
+      ><textarea
+        id="document-import-preview"
+        readonly
+        rows="7"
+        hidden
+      ></textarea>
+      <div class="dialog-actions">
+        <button id="document-import-cancel" class="button" type="button">
+          Annuler</button
+        ><button
+          id="document-import-confirm"
+          class="button primary"
+          type="button"
+          disabled
+        >
+          Remplacer le brouillon
+        </button>
+      </div>
     </dialog>
     <script src="engine/khwarizmtex.global.js"></script>
     <script type="module" src="app.js"></script>

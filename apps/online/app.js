@@ -10,6 +10,8 @@ import {
 } from "./model.js";
 import { renderDocument } from "./document.js";
 import { bindEditor } from "./editor.js";
+import { bindTools } from "./tools.js";
+import { bindImports } from "./imports.js";
 import { download, filename, copyText, mathml } from "./exports.js";
 
 const $ = (id) => document.getElementById(id);
@@ -195,6 +197,22 @@ const editor = bindEditor(
   notify,
   () => state.mode,
 );
+bindTools(editor, source, engine, notify, edit);
+bindImports((imported) => {
+  if (imported.kind === "backup") {
+    for (const mode of ["formula", "document"])
+      histories[mode].push(imported.state[mode]);
+    state = imported.state;
+  } else {
+    const mode = imported.kind;
+    state[mode] = { title: imported.title, source: imported.source };
+    histories[mode].push(state[mode]);
+    state.mode = mode;
+  }
+  syncView();
+  persist();
+  notify("Import terminé. Annuler permet de retrouver le brouillon précédent.");
+});
 title.addEventListener("input", () => edit(true));
 $("undo").addEventListener("click", () => moveHistory(-1));
 $("redo").addEventListener("click", () => moveHistory(1));

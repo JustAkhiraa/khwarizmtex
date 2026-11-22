@@ -5,6 +5,13 @@ Ce projet suit le versionnement sémantique : les versions publiées prennent la
 
 ## À paraître
 
+- Online : palette de 277 symboles/modèles recherchables, 12 catégories,
+  matrices personnalisées jusqu’à 6 × 6, couleurs et réglages d’aperçu.
+- Import local avec aperçu et confirmation des fichiers Markdown, texte,
+  formules LaTeX, sauvegardes JSON et texte de PDF via PDF.js chargé à la demande.
+  L’extraction PDF n’inclut ni OCR ni reconstruction des formules en LaTeX.
+- Insertion dans les documents : détection des blocs mathématiques, des titres
+  et des dollars échappés pour éviter d’ajouter des délimiteurs incorrects.
 - KhwarizmTeX Online : atelier Formule/Document, vues ordinateur et téléphone,
   thèmes, galerie, structures, suggestions, historique, brouillons locaux,
   partage de formule, exports source/MathML/JSON et impression épurée.
