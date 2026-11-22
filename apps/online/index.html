@@ -143,7 +143,7 @@
               <div class="pane-heading">
                 <h2 id="editor-heading">
                   <span class="pane-dot" aria-hidden="true"></span> Éditeur
-                  <span class="pill" id="language">LaTeX</span>
+                  <span class="pill" id="language">Formule</span>
                 </h2>
                 <div class="history-actions">
                   <button
@@ -250,7 +250,7 @@
               <div class="preview-foot">
                 <span id="render-status" role="status">Prêt à écrire</span
                 ><button type="button" class="button quiet small" id="copy">
-                  Copier le LaTeX
+                  Copier la source
                 </button>
               </div>
             </section>
@@ -320,7 +320,7 @@
       </div>
       <h3>Formule</h3>
       <p>
-        Écrivez du LaTeX ou utilisez la barre de symboles. Une sélection est
+        Écrivez une formule ou utilisez la barre de symboles. Une sélection est
         insérée dans la structure choisie. Tapez <code>\fra</code>, puis Tab
         pour insérer une fraction.
       </p>
@@ -343,7 +343,7 @@
         JSON et PDF. Vérifiez l’aperçu, puis confirmez le remplacement du
         brouillon. Vous pourrez retrouver l’ancien contenu avec Annuler. Les PDF
         fournissent du texte sélectionnable : les scans et la conversion
-        automatique des formules en LaTeX ne sont pas encore pris en charge.
+        automatique des formules ne sont pas encore pris en charge.
       </p>
       <h3>Raccourcis</h3>
       <p>
@@ -363,7 +363,7 @@
         Ce mode Document n’est pas un compilateur TeX complet : pas de packages,
         bibliographie, images ni collaboration en ligne. PDF utilise la boîte
         d’impression du navigateur. Le moteur ne prend pas encore en charge
-        toutes les commandes LaTeX.
+        toutes les commandes.
       </p>
     </dialog>
     <dialog id="export-dialog" aria-labelledby="export-title">
@@ -382,10 +382,10 @@
         <button type="button" data-export="source">
           <strong>Source</strong
           ><span
-            >LaTeX pour une formule, texte structuré pour un document</span
+            >Source pour une formule, texte structuré pour un document</span
           ></button
         ><button type="button" data-export="mathml" id="export-mathml">
-          <strong>MathML</strong
+          <strong>Balisage natif</strong
           ><span>La formule dans un format mathématique ouvert</span></button
         ><button type="button" data-export="print">
           <strong>Imprimer / PDF</strong
@@ -444,7 +444,7 @@
         aria-label="Familles de symboles"
       ></div>
       <p id="science-note" class="tool-note" hidden>
-        Modèles chimiques en LaTeX standard. Pas encore de structures
+        Modèles chimiques en notation standard. Pas encore de structures
         moléculaires ni de syntaxe mhchem.
       </p>
       <p id="palette-count" role="status"></p>
@@ -496,7 +496,7 @@
         >
       </div>
       <p>
-        Chaque cellule accepte une expression LaTeX. Les cellules vides
+        Chaque cellule accepte une expression. Les cellules vides
         deviennent des carrés à compléter.
       </p>
       <div class="matrix-scroll">
@@ -547,7 +547,7 @@
         </select></label
       >
       <p>
-        La couleur insérée fait partie du LaTeX. La taille et le fond concernent
+        La couleur insérée fait partie de la source. La taille et le fond concernent
         seulement l’aperçu et ne sont pas sauvegardés. L’impression garde un
         fond blanc. Les styles de texte sont dans « Tous les symboles ».
       </p>
@@ -565,7 +565,7 @@
         </button>
       </div>
       <p>
-        Markdown, texte, formule LaTeX, sauvegarde JSON ou PDF avec texte
+        Markdown, texte, formule, sauvegarde JSON ou PDF avec texte
         sélectionnable. Le traitement reste sur cet appareil.
       </p>
       <label class="file-picker" for="document-file"

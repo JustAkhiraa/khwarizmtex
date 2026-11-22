@@ -1,11 +1,11 @@
 /**
  * Nœuds de l'arbre syntaxique (AST).
  *
- * L'arbre est indépendant de toute sortie : les moteurs HTML et MathML le lisent
+ * L'arbre est indépendant de toute sortie : les moteurs HTML et natif le lisent
  * sans jamais le modifier. Chaque nœud est un objet simple, sérialisable en JSON.
  */
 
-/** Position dans la source LaTeX (indices de caractères, fin exclue). */
+/** Position dans la source (indices de caractères, fin exclue). */
 export interface Loc {
   start: number;
   end: number;

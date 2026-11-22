@@ -136,7 +136,7 @@
   scrollbar-width: thin;
 }
 
-/* Couche MathML : lue par les lecteurs d'écran, invisible à l'œil. */
+/* Couche native : lue par les lecteurs d'écran, invisible à l'œil. */
 .khw > .khw-mathml-layer {
   position: absolute;
   width: 1px;

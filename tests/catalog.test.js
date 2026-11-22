@@ -59,7 +59,7 @@ describe("imports locaux", () => {
       expect(() => parseTextImport(name, text)).toThrow();
     }
   });
-  it("récupère les lignes PDF sans inventer une formule LaTeX", () => {
+  it("récupère les lignes PDF sans inventer une formule", () => {
     expect(
       pdfText([
         { str: "E =", hasEOL: false },

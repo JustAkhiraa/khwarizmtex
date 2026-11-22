@@ -56,6 +56,6 @@ export function mathml(source, engine) {
   });
   const parsed = new DOMParser().parseFromString(html, "text/html");
   const math = parsed.querySelector("math");
-  if (!math) throw new Error("Impossible de générer le MathML.");
+  if (!math) throw new Error("Impossible de générer le balisage natif.");
   return new XMLSerializer().serializeToString(math);
 }

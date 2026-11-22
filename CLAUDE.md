@@ -2,7 +2,7 @@
 
 ## 1. Identité du projet
 **Khwarizm** est un moteur de rendu mathématique moderne, open source et ultra-léger, inspiré du meilleur de KaTeX et MathJax ("Fusion++").
-- **Objectif** : Rendre des formules LaTeX en **HTML/CSS haute précision** (prioritaire sur l'esthétique) et en **MathML Core natif** (accessibilité et sémantique), avec une ergonomie irréprochable.
+- **Objectif** : Rendre des formules en **HTML/CSS haute précision** (prioritaire sur l'esthétique) et en **balisage mathématique natif** (accessibilité et sémantique), avec une ergonomie irréprochable.
 - **Licence** : Propriété de l'auteur (licence définie dans `LICENSE`).
 
 ---
@@ -36,7 +36,7 @@ khwarizm/
 │   ├── symbols/        # Tables de symboles (grec, opérateurs, flèches, logique, ensembles)
 │   ├── renderers/
 │   │   ├── html.ts     # Rendu HTML/CSS haute précision (DOM minimal et sémantique)
-│   │   └── mathml.ts   # Rendu MathML Core natif
+│   │   └── mathml.ts   # Rendu balisage mathématique natif
 │   ├── styles/
 │   │   └── khwarizm.css # Feuille de style isolée (classes préfixées .khw-*)
 │   ├── plugins/        # autoRender (scan DOM) + Web Component <khwarizm-math>

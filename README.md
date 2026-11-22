@@ -13,8 +13,8 @@ Formule et Document, interface ordinateur/téléphone, sauvegarde locale,
 autocomplétion, palette de 277 choix, matrices personnalisées, partage et exports.
 Le bouton **Importer** ouvre les fichiers Markdown, texte, formules `.tex`,
 sauvegardes JSON et PDF. Les PDF fournissent du texte extrait, sans OCR ni
-reconstruction automatique des équations en LaTeX. Le mode Document
-compose texte et maths ; ce n’est pas un compilateur de projets LaTeX complets.
+reconstruction automatique des équations en source. Le mode Document
+compose texte et maths ; ce n’est pas un compilateur de documents complets.
 Voir le [guide de l’atelier](apps/online/README.md).
 
 `npm run build:online` prépare un site statique autonome dans `build/online/`,
@@ -109,8 +109,8 @@ renderToString('\\href{https://example.org/cours}{\\text{Le cours}}', {
 ```
 
 Le texte d'un lien refusé reste lisible, accompagné d'un diagnostic. En sortie
-combinée ou MathML, des liens HTML complémentaires deviennent visibles au focus
-clavier ; le MathML conserve le contenu mathématique.
+combinée ou balisage natif, des liens HTML complémentaires deviennent visibles au focus
+clavier ; le balisage natif conserve le contenu mathématique.
 
 ### L'élément `<khwarizm-math>`
 

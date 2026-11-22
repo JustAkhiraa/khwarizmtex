@@ -8,7 +8,7 @@ export function hideInteractiveLinks(tree: VElement): void {
   for (const child of tree.children) if (typeof child !== 'string') hideInteractiveLinks(child);
 }
 
-/** MathML Core n'inclut pas les liens : on fournit des liens HTML frères accessibles. */
+/** Le balisage natif n'inclut pas les liens : on fournit des liens HTML frères accessibles. */
 export function accessibleLinks(nodes: MathNode[]): VElement[] {
   const links: VElement[] = [];
   const seen = new Set<string>();

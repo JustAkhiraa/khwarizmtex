@@ -157,8 +157,8 @@ function syncView() {
   $("workspace").classList.toggle("document-mode", isDocument);
   $("preview").className = isDocument ? "document-preview" : "formula-preview";
   $("breadcrumb-mode").textContent = isDocument ? "Document" : "Formule";
-  $("language").textContent = isDocument ? "Texte + maths" : "LaTeX";
-  $("copy").textContent = isDocument ? "Copier la source" : "Copier le LaTeX";
+  $("language").textContent = isDocument ? "Texte + maths" : "Formule";
+  $("copy").textContent = isDocument ? "Copier la source" : "Copier la formule";
   $("share").hidden = isDocument;
   $("export-mathml").hidden = isDocument;
   $("source-help").textContent = isDocument

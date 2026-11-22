@@ -41,7 +41,7 @@ export function bindTools(editor, source, engine, notify, onChange) {
     }
     if (!items.length) {
       const p = document.createElement("p");
-      p.textContent = "Aucun résultat. Essayez un nom ou une commande LaTeX.";
+      p.textContent = "Aucun résultat. Essayez un nom ou une commande.";
       $("palette-grid").append(p);
     }
     $("science-note").hidden = category !== "chemistry";
@@ -188,7 +188,7 @@ export function bindTools(editor, source, engine, notify, onChange) {
     );
   });
   $("join-lines").addEventListener("click", () => {
-    // Ne touche qu'aux retours de ligne réels, jamais aux séparateurs LaTeX \\.
+    // Ne touche qu'aux retours de ligne réels, jamais aux séparateurs \\.
     if (
       source.value.includes("\n") &&
       window.confirm(
