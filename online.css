@@ -1006,9 +1006,9 @@ kbd {
     flex-direction: column;
     min-height: 0;
   }
+  /* Téléphone : la saisie d'abord, l'aperçu juste en dessous. */
   .preview-pane {
-    order: -1;
-    border-bottom: 1px solid var(--line);
+    border-top: 1px solid var(--line);
   }
   .editor-pane {
     border: 0;

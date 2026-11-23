@@ -1,4 +1,5 @@
 import { CATALOG, CATEGORIES, searchCatalog, matrixSource } from "./catalog.js";
+import { createRecents, createFavorites } from "./recents.js";
 const $ = (id) => document.getElementById(id);
 export function bindTools(editor, source, engine, notify, onChange) {
   let selection = [0, 0];
@@ -12,46 +13,167 @@ export function bindTools(editor, source, engine, notify, onChange) {
     dialog.close();
     editor.insert(value, selection);
   }
-  function drawPalette() {
-    const items = searchCatalog($("palette-search").value, category);
-    $("palette-grid").replaceChildren();
-    $("palette-count").textContent = items.length + " choix";
-    $("palette-more").hidden = items.length <= limit;
-    for (const item of items.slice(0, limit)) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "symbol-card";
-      button.setAttribute("aria-label", item.label);
-      button.title = item.source;
-      const preview = document.createElement("span");
-      preview.className = "symbol-preview";
-      preview.setAttribute("aria-hidden", "true");
-      engine.renderToElement(item.source.replaceAll("□", "x"), preview, {
-        output: "html",
-        displayMode: false,
+  const recents = createRecents();
+  const favorites = createFavorites();
+  let recentsDirty = false;
+  // Symbole affiché par chaque outil, pour chercher « ≤ » comme « \\leq ».
+  const symbolCache = new Map();
+  function symbolOf(item) {
+    if (!symbolCache.has(item.id)) {
+      const probe = document.createElement("span");
+      try {
+        engine.renderToElement(item.source.replaceAll("□", ""), probe, {
+          output: "html",
+          displayMode: false,
+        });
+      } catch {
+        /* Aperçu impossible : pas de recherche par symbole. */
+      }
+      symbolCache.set(item.id, probe.textContent.replace(/\s+/g, ""));
+    }
+    return symbolCache.get(item.id);
+  }
+  function announce(message) {
+    $("tool-status").textContent = "";
+    requestAnimationFrame(() => ($("tool-status").textContent = message));
+  }
+  function pinButton(item) {
+    const pin = document.createElement("button");
+    pin.type = "button";
+    pin.className = "pin-button";
+    const update = () => {
+      const on = favorites.has(item.id);
+      pin.textContent = on ? "★" : "☆";
+      pin.setAttribute("aria-pressed", String(on));
+      pin.setAttribute(
+        "aria-label",
+        (on ? "Retirer des favoris : " : "Épingler en favori : ") + item.label,
+      );
+      pin.title = on ? "Retirer des favoris" : "Épingler en favori";
+    };
+    update();
+    pin.addEventListener("mousedown", (event) => event.preventDefault());
+    pin.addEventListener("click", () => {
+      if (!favorites.toggle(item.id)) {
+        notify("Douze favoris au plus : retirez-en un pour en épingler un autre.");
+        return;
+      }
+      announce(favorites.has(item.id) ? "Épinglé en favori." : "Retiré des favoris.");
+      if (category === "favorites" && !$("palette-search").value.trim()) {
+        drawPalette();
+        $("palette-grid").querySelector(".pin-button")?.focus();
+      } else update();
+      drawCategories();
+    });
+    return pin;
+  }
+  function paletteItem(item) {
+    const wrap = document.createElement("div");
+    wrap.className = "symbol-item";
+    const main = card(item, false);
+    wrap.append(main, pinButton(item));
+    if (category === "favorites" && !$("palette-search").value.trim())
+      main.addEventListener("keydown", (event) => {
+        if (!event.altKey || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+        event.preventDefault();
+        favorites.move(item.id, event.key === "ArrowLeft" ? -1 : 1);
+        drawPalette();
+        $("palette-grid").querySelector('[data-tool="' + CSS.escape(item.id) + '"]')?.focus();
+        announce("Favori déplacé.");
       });
+    return wrap;
+  }
+  function card(item, compact) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = compact ? "recent-chip" : "symbol-card";
+    button.setAttribute("aria-label", item.label);
+    button.title = item.label + " : " + item.source;
+    button.dataset.tool = item.id;
+    const preview = document.createElement("span");
+    preview.className = "symbol-preview";
+    preview.setAttribute("aria-hidden", "true");
+    engine.renderToElement(item.source.replaceAll("□", "x"), preview, {
+      output: "html",
+      displayMode: false,
+    });
+    button.append(preview);
+    if (!compact) {
       const name = document.createElement("span");
       name.className = "symbol-label";
       name.textContent = item.label;
-      button.append(preview, name);
-      button.addEventListener("click", () =>
-        insert(item.source, $("palette-dialog")),
-      );
-      $("palette-grid").append(button);
+      button.append(name);
     }
+    // Garde le curseur dans la source : l'insertion se fait à la sélection actuelle.
+    button.addEventListener("mousedown", (event) => event.preventDefault());
+    button.addEventListener("click", () => use(item));
+    return button;
+  }
+  function use(item) {
+    const before = source.value;
+    editor.insert(item.source);
+    if (source.value === before) return;
+    announce("Inséré : " + item.label);
+    recents.add(item.id);
+    // Pas de réordonnancement sous le pointeur : on redessine en quittant la ligne.
+    if ($("recent-row").matches(":hover, :focus-within")) recentsDirty = true;
+    else drawRecents();
+  }
+  function drawRecents() {
+    recentsDirty = false;
+    const items = recents.items();
+    $("recent-list").replaceChildren(...items.map((item) => card(item, true)));
+    $("recent-row").hidden = items.length === 0;
+  }
+  for (const type of ["mouseleave", "focusout"])
+    $("recent-row").addEventListener(type, () => {
+      if (recentsDirty && !$("recent-row").matches(":focus-within")) drawRecents();
+    });
+  editor.onInsertStructure = (id) => {
+    recents.add(id);
+    drawRecents();
+  };
+  drawRecents();
+  function drawPalette() {
+    const query = $("palette-search").value.trim();
+    const items =
+      !query && category === "favorites"
+        ? favorites.items()
+        : searchCatalog(query, query || category === "favorites" ? "all" : category, symbolOf);
+    $("palette-clear").hidden = !query;
+    $("palette-grid").replaceChildren(
+      ...items.slice(0, limit).map((item) => paletteItem(item)),
+    );
+    $("palette-count").textContent = query
+      ? items.length + " résultat" + (items.length > 1 ? "s" : "") + " dans tout le catalogue"
+      : category === "favorites"
+        ? items.length + " favori" + (items.length > 1 ? "s" : "") + " sur 12 · Alt + flèches pour les ranger"
+        : items.length + " choix";
+    $("palette-more").hidden = items.length <= limit;
     if (!items.length) {
       const p = document.createElement("p");
-      p.textContent = "Aucun résultat. Essayez un nom ou une commande LaTeX.";
+      p.className = "palette-empty";
+      p.textContent =
+        !query && category === "favorites"
+          ? "Aucun favori. Touchez ☆ sur un outil pour l’épingler ici."
+          : "Aucun résultat. Essayez un nom (inférieur, racine), une commande ou un symbole (≤).";
       $("palette-grid").append(p);
     }
-    $("science-note").hidden = category !== "chemistry";
+    $("science-note").hidden = category !== "chemistry" || Boolean(query);
+    drawCategories();
+  }
+  function drawCategories() {
+    const query = $("palette-search").value.trim();
     $("palette-categories")
       .querySelectorAll("button")
-      .forEach((b) =>
-        b.setAttribute("aria-pressed", String(b.dataset.category === category)),
-      );
+      .forEach((b) => {
+        b.setAttribute("aria-pressed", String(!query && b.dataset.category === category));
+        if (b.dataset.category === "favorites")
+          b.textContent = "★ Favoris (" + favorites.items().length + ")";
+      });
   }
   for (const group of [
+    { id: "favorites", label: "★ Favoris" },
     { id: "all", label: "Tout (" + CATALOG.length + ")" },
     ...CATEGORIES,
   ]) {
@@ -59,26 +181,41 @@ export function bindTools(editor, source, engine, notify, onChange) {
     button.type = "button";
     button.textContent = group.label;
     button.dataset.category = group.id;
+    button.addEventListener("mousedown", (event) => event.preventDefault());
     button.addEventListener("click", () => {
       category = group.id;
       limit = 60;
+      $("palette-search").value = "";
       drawPalette();
     });
     $("palette-categories").append(button);
   }
+  let drawn = false;
   $("palette-open").addEventListener("click", () => {
-    remember();
-    $("palette-search").value = "";
-    category = "structures";
-    limit = 60;
-    drawPalette();
-    $("palette-dialog").showModal();
-    $("palette-search").focus();
+    const open = $("palette-panel").hidden;
+    $("palette-panel").hidden = !open;
+    $("palette-open").setAttribute("aria-expanded", String(open));
+    $("palette-open").textContent = open ? "Réduire les symboles" : "Tous les symboles";
+    if (open && !drawn) {
+      drawn = true;
+      drawPalette();
+    }
+  });
+  // Échap ramène à la source, sans fermer le panneau.
+  $("palette-panel").addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if (event.target === $("palette-search") && $("palette-search").value) return;
+    event.preventDefault();
+    source.focus();
   });
   $("palette-search").addEventListener("input", () => {
-    category = "all";
     limit = 60;
     drawPalette();
+  });
+  $("palette-clear").addEventListener("click", () => {
+    $("palette-search").value = "";
+    drawPalette();
+    $("palette-search").focus();
   });
   $("palette-more").addEventListener("click", () => {
     limit += 60;
@@ -187,14 +324,24 @@ export function bindTools(editor, source, engine, notify, onChange) {
       value === "auto" ? "inherit" : value === "night" ? "#f6f6ff" : "#222238",
     );
   });
+  // Le menu Plus se referme dès qu'on clique ailleurs ou qu'on presse Échap.
+  document.addEventListener("click", (event) => {
+    if (!$("more-menu").contains(event.target)) $("more-menu").open = false;
+  });
+  $("more-menu").addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !$("more-menu").open) return;
+    $("more-menu").open = false;
+    $("more-menu").querySelector("summary").focus();
+  });
   $("join-lines").addEventListener("click", () => {
-    // Ne touche qu'aux retours de ligne réels, jamais aux séparateurs LaTeX \\.
+    // Ne touche qu'aux retours de ligne réels, jamais aux séparateurs \\.
     if (
       source.value.includes("\n") &&
       window.confirm(
         "Remplacer les retours de ligne par des espaces ? En mode Document, cela modifie aussi la structure du texte. Vous pourrez annuler.",
       )
     ) {
+      $("more-menu").open = false;
       source.value = source.value.replace(/\r?\n/g, " ");
       onChange(false);
       source.focus();

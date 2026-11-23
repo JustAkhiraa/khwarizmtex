@@ -8,9 +8,11 @@ import {
   decodeFormula,
   initialState,
 } from "./model.js";
-import { renderDocument } from "./document.js";
+import { inlineParts, parseDocument, renderDocument } from "./document.js";
 import { bindEditor } from "./editor.js";
 import { bindTools } from "./tools.js";
+import { bindMolecule } from "./molecule.js";
+import { bindPreviewEditor } from "./preview-edit.js";
 import { bindImports } from "./imports.js";
 import { download, filename, copyText, mathml } from "./exports.js";
 
@@ -50,6 +52,44 @@ let renderTimer;
 let saveTimer;
 let toastTimer;
 let zoom = 1;
+let previewEditor = null;
+let hadHoles = false;
+let renderPending = false;
+let celebrateTimer;
+// Petit moment de réussite : une formule dont tous les □ sont remplis, sans erreur.
+function celebrate() {
+  const surface = $("preview-surface");
+  clearTimeout(celebrateTimer);
+  surface.classList.remove("celebrate");
+  void surface.offsetWidth;
+  surface.classList.add("celebrate");
+  $("complete-badge").hidden = false;
+  celebrateTimer = setTimeout(() => {
+    surface.classList.remove("celebrate");
+    $("complete-badge").hidden = true;
+  }, 2200);
+}
+function showEmpty(preview) {
+  const box = document.createElement("div");
+  box.className = "empty-state";
+  const mark = document.createElement("span");
+  mark.className = "empty-mark";
+  mark.setAttribute("aria-hidden", "true");
+  mark.textContent = "∑";
+  const line = document.createElement("p");
+  line.textContent =
+    state.mode === "document"
+      ? "Une page blanche, tout est possible."
+      : "Votre formule apparaîtra ici.";
+  const hint = document.createElement("p");
+  hint.className = "empty-hint";
+  hint.textContent =
+    state.mode === "document"
+      ? "Écrivez un titre avec #, puis vos maths entre $."
+      : "Choisissez un symbole ci-dessus, ou tapez \\frac.";
+  box.append(mark, line, hint);
+  preview.replaceChildren(box);
+}
 
 function notify(message) {
   clearTimeout(toastTimer);
@@ -62,6 +102,7 @@ function notify(message) {
 function persist() {
   clearTimeout(saveTimer);
   const saved = saveState(storage, state);
+  $("save-status").classList.toggle("saved", saved);
   $("save-status").textContent = saved
     ? "Enregistré sur cet appareil"
     : "Sauvegarde indisponible";
@@ -72,9 +113,11 @@ function persist() {
 }
 function schedule() {
   clearTimeout(renderTimer);
+  renderPending = true;
   renderTimer = setTimeout(render, 100);
   clearTimeout(saveTimer);
   saveTimer = setTimeout(persist, 250);
+  $("save-status").classList.remove("saved");
   $("save-status").textContent = "Enregistrement…";
 }
 function historyButtons() {
@@ -108,6 +151,7 @@ function showErrors(errors) {
 }
 function render() {
   clearTimeout(renderTimer);
+  renderPending = false;
   const start = performance.now();
   const preview = $("preview");
   try {
@@ -128,7 +172,15 @@ function render() {
         maxExpand: 500,
       }).errors;
     }
+    if (!source.value.trim()) {
+      showEmpty(preview);
+      $("coach").hidden = true;
+    }
     showErrors(errors);
+    previewEditor?.decorate();
+    const holes = source.value.includes("□");
+    if (hadHoles && !holes && !errors.length && source.value.trim()) celebrate();
+    hadHoles = holes;
     $("render-status").textContent = errors.length
       ? errors.length + " point(s) à vérifier"
       : "Rendu en " +
@@ -157,13 +209,13 @@ function syncView() {
   $("workspace").classList.toggle("document-mode", isDocument);
   $("preview").className = isDocument ? "document-preview" : "formula-preview";
   $("breadcrumb-mode").textContent = isDocument ? "Document" : "Formule";
-  $("language").textContent = isDocument ? "Texte + maths" : "LaTeX";
-  $("copy").textContent = isDocument ? "Copier la source" : "Copier le LaTeX";
+  $("language").textContent = isDocument ? "Texte + maths" : "Formule";
+  $("copy").textContent = isDocument ? "Copier la source" : "Copier la formule";
   $("share").hidden = isDocument;
   $("export-mathml").hidden = isDocument;
   $("source-help").textContent = isDocument
     ? "Titres # · Maths $…$ · Blocs $$ sur lignes séparées"
-    : "Une commande commence par \\ · Tab pour compléter";
+    : "Une commande commence par \\ · Tab : compléter ou □ suivant";
   $("character-count").textContent =
     source.value.length.toLocaleString("fr") + " car.";
   document
@@ -175,6 +227,8 @@ function syncView() {
       ),
     );
   editor.close();
+  previewEditor?.close();
+  hadHoles = false;
   historyButtons();
   render();
 }
@@ -198,6 +252,57 @@ const editor = bindEditor(
   () => state.mode,
 );
 bindTools(editor, source, engine, notify, edit);
+bindMolecule(editor, source, engine, notify);
+// Une frappe dans l'aperçu passe par le même chemin qu'une frappe à gauche :
+// même historique (regroupé), même sauvegarde, rendu immédiat.
+previewEditor = bindPreviewEditor({
+  preview: $("preview"),
+  surface: $("preview-surface"),
+  source,
+  engine,
+  getMode: () => state.mode,
+  notify,
+  launcher: $("preview-edit"),
+  flush: () => render(),
+  pending: () => renderPending,
+  // Formule qui contient cette position : la source entière, ou une formule du document.
+  locate(position) {
+    if (state.mode === "formula")
+      return { text: source.value, start: 0, display: true, index: -1 };
+    let index = -1;
+    for (const block of parseDocument(source.value).blocks) {
+      const formulas =
+        block.type === "math"
+          ? [{ text: block.text, start: block.start, display: true }]
+          : inlineParts(block.text)
+              .filter((part) => part.type === "math")
+              .map((part) => ({ text: part.text, start: block.start + part.start, display: false }));
+      for (const formula of formulas) {
+        index++;
+        if (position >= formula.start && position <= formula.start + formula.text.length)
+          return { ...formula, index };
+      }
+    }
+    return null;
+  },
+  renderProbe(text, display, box) {
+    engine.renderToElement(text, box, {
+      displayMode: display,
+      maxLength: 50000,
+      maxDepth: 64,
+      maxExpand: 500,
+    });
+  },
+  apply(start, end, text) {
+    if (source.value.length - (end - start) + text.length > 50000) {
+      notify("La limite de 50 000 caractères est atteinte.");
+      return;
+    }
+    source.setRangeText(text, start, end, "end");
+    edit(true);
+    render();
+  },
+});
 bindImports((imported) => {
   if (imported.kind === "backup") {
     for (const mode of ["formula", "document"])

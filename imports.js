@@ -26,7 +26,7 @@ export function parseTextImport(name, text) {
     /\\(?:documentclass|usepackage)\b|\\begin\s*\{document\}/.test(text)
   ) {
     throw new Error(
-      "Ce fichier est un projet LaTeX complet. Importez seulement une formule ; les préambules et packages ne sont pas encore compilés.",
+      "Ce fichier est un projet de document complet. Importez seulement une formule ; les préambules et packages ne sont pas encore compilés.",
     );
   }
   const mode = extension === "tex" ? "formula" : "document";
@@ -119,7 +119,7 @@ export async function extractPDF(file, signal, progress) {
       title: file.name.replace(/\.pdf$/i, "").slice(0, 100),
       source,
       warning:
-        "Texte extrait, pas de conversion mathématique en LaTeX. Les fractions, indices, colonnes et l’ordre de lecture peuvent être altérés : vérifiez et reconstruisez les formules avec la palette. " +
+        "Texte extrait, pas de conversion mathématique en source. Les fractions, indices, colonnes et l’ordre de lecture peuvent être altérés : vérifiez et reconstruisez les formules avec la palette. " +
         (blank ? blank + " page(s) sans texte extractible. " : "") +
         "Le brouillon Document sera remplacé après confirmation.",
     };
@@ -188,7 +188,7 @@ export function bindImports(onImport) {
       if (current !== generation || active.signal.aborted) return;
       candidate = result;
       $("document-import-status").textContent =
-        file.name + " — prêt à importer";
+        file.name + " : prêt à importer";
       $("document-import-warning").textContent = result.warning;
       $("document-import-warning").hidden = false;
       $("document-import-preview").value =

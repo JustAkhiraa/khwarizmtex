@@ -1,6 +1,7 @@
 import { COMMANDS, STRUCTURES } from "./presets.js";
 import { MAX_SOURCE } from "./model.js";
 import { CATALOG } from "./catalog.js";
+import { catalogIdFor } from "./recents.js";
 import { parseDocument, inlineParts } from "./document.js";
 
 const completionMap = new Map(COMMANDS.map((entry) => [entry[0], entry]));
@@ -106,6 +107,7 @@ export function bindEditor(
     }
     replace(value, selection[0], selection[1]);
   }
+  const api = { close, insert, onInsertStructure: null };
   for (const structure of STRUCTURES) {
     const button = document.createElement("button");
     button.type = "button";
@@ -113,7 +115,10 @@ export function bindEditor(
     button.title = structure.label;
     button.setAttribute("aria-label", structure.label);
     button.addEventListener("click", () => {
+      const before = source.value;
       insert(structure.source);
+      const id = catalogIdFor(structure.source);
+      if (id && source.value !== before) api.onInsertStructure?.(id);
     });
     toolbar.append(button);
   }
@@ -147,6 +152,21 @@ export function bindEditor(
     } else if (!suggestions.hidden && ["Tab", "Enter"].includes(event.key)) {
       event.preventDefault();
       accept(active);
+    } else if (
+      event.key === "Tab" &&
+      !event.altKey &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      source.value.includes("□")
+    ) {
+      // Tab passe au □ suivant (Maj+Tab : précédent) ; sans □, navigation normale.
+      const value = source.value;
+      const at = event.shiftKey
+        ? value.lastIndexOf("□", source.selectionStart - 1)
+        : value.indexOf("□", source.selectionEnd);
+      if (at < 0 || (event.shiftKey && source.selectionStart === 0)) return;
+      event.preventDefault();
+      source.setSelectionRange(at, at + 1);
     } else if (event.key === "Escape") close();
   });
   source.addEventListener("blur", () =>
@@ -158,5 +178,5 @@ export function bindEditor(
         close();
     }, 150),
   );
-  return { close, insert };
+  return api;
 }

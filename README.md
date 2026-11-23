@@ -15,9 +15,9 @@ L'ouverture par `file://` n'est pas prise en charge pour Online (modules ES).
 
 ## Deux modes
 
-- **Formule** : aperçu HTML + MathML accessible, insertion de structures,
+- **Formule** : aperçu HTML + balisage natif accessible, insertion de structures,
   suggestions de commandes, annulation/rétablissement, copie, partage par
-  fragment d'URL, exports source et MathML.
+  fragment d'URL, exports source et balisage natif.
 - **Document** : texte, titres et listes, formules inline entre `$`, blocs
   centrés délimités par `$$` sur leurs propres lignes. Les blocs avec `\label`
   sont numérotés ; les `\eqref` inline suivent les modifications du document.
@@ -29,16 +29,17 @@ et l'import validé demande confirmation avant remplacement.
 
 ## Palette et présentation
 
-**Tous les symboles** ouvre 277 modèles recherchables dans 12 catégories :
+**Tous les symboles** ouvre 379 modèles recherchables dans 15 catégories :
 structures, grec, relations, ensembles/logique, flèches, fonctions, opérateurs,
-accents/vecteurs, délimiteurs, styles, physique et chimie.
+accents/vecteurs, délimiteurs, styles, probabilités/statistiques, analyse,
+algèbre/géométrie, physique et chimie.
 Une sélection remplace le premier carré du modèle ; les autres carrés restent
 à compléter. Dans un document, les insertions hors formule sont entourées de `$`.
 
 **Matrices** construit de 1 à 6 lignes/colonnes avec six types de délimiteurs.
-**Présentation** insère une couleur LaTeX et règle la taille/fond de l’aperçu
+**Présentation** insère une couleur et règle la taille/fond de l’aperçu
 pour la session. Ces deux derniers réglages ne sont pas sauvegardés.
-Les modèles scientifiques utilisent le LaTeX standard, sans mhchem ni siunitx.
+Les modèles scientifiques utilisent la notation standard, sans mhchem ni siunitx.
 
 ## Importer ses documents
 
@@ -58,7 +59,7 @@ Les modèles scientifiques utilisent le LaTeX standard, sans mhchem ni siunitx.
   une copie déverrouillée. Les pages sans texte sont signalées ; un PDF entièrement
   scanné est refusé avec une explication.
 
-**Les formules d’un PDF ne sont pas converties en LaTeX.** Les symboles présents
+**Les formules d’un PDF ne sont pas reconstituÃ©es.** Les symboles présents
 dans la couche texte peuvent être extraits, mais les fractions, indices et l’ordre
 de lecture peuvent être altérés. Il faut les vérifier et reconstruire les équations
 avec la palette. Une reconnaissance OCR mathématique reste à développer.
@@ -101,14 +102,14 @@ personnes ayant accès au profil de l'utilisateur.
 - `presets.js` : commandes et galerie.
 - `catalog.js`, `tools.js` : palette, matrices et présentation.
 - `imports.js` : validation, aperçu et extraction PDF chargée à la demande.
-- `exports.js` : téléchargements, presse-papiers et MathML.
+- `exports.js` : téléchargements, presse-papiers et balisage natif.
 
 La police STIX Two est locale et sous SIL OFL 1.1 (voir `assets/fonts`).
 Le moteur et Online n'ont aucun appel réseau externe à l'exécution.
 
 ## Limites explicites
 
-- Le document n'est **pas** un compilateur LaTeX complet : pas de préambule,
+- Le document n'est **pas** un compilateur de documents complet : pas de préambule,
   packages, bibliographie, images, projet multi-fichiers ni collaboration.
 - Un numéro par bloc, pas par ligne d'un environnement aligné.
 - Les signes `$` littéraux doivent être échappés en `\$`.
@@ -120,7 +121,7 @@ Le moteur et Online n'ont aucun appel réseau externe à l'exécution.
   mathématique natif n'est annoncé.
 - Le site statique peut être utilisé sans Internet via le serveur local ; ce
   n'est pas encore une PWA installable avec cache hors ligne.
-- Les tests clavier, mobile et MathML ne remplacent pas une validation manuelle
+- Les tests clavier, mobile et balisage natif ne remplacent pas une validation manuelle
   avec VoiceOver/NVDA. La lecture vocale et l'exploration sémantique restent à faire.
 
 ## Vérifier

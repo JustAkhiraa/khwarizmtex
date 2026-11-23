@@ -17,8 +17,91 @@
   background: var(--tint);
   border-color: var(--accent);
 }
-.wide-dialog {
-  width: min(900px, calc(100% - 24px));
+.palette-panel {
+  display: grid;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  max-height: min(340px, 45vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.palette-panel[hidden],
+.recent-row[hidden] {
+  display: none;
+}
+.palette-search-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.palette-search-row .search {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+.palette-count {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted, inherit);
+}
+.palette-panel .symbol-grid {
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 6px;
+  margin-bottom: 0;
+}
+.palette-panel .symbol-card {
+  padding: 8px 6px;
+  gap: 4px;
+  min-height: 44px;
+}
+.palette-panel .symbol-preview {
+  font-size: 18px;
+  min-height: 30px;
+}
+.recent-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.recent-label {
+  font-size: 12px;
+  font-weight: 600;
+  flex: none;
+}
+.recent-list {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  min-width: 0;
+  scrollbar-width: thin;
+}
+.recent-chip {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  display: grid;
+  place-items: center;
+}
+.recent-chip:hover,
+.recent-chip:focus-visible {
+  background: var(--tint);
+  border-color: var(--accent);
+}
+.recent-chip .symbol-preview {
+  font-size: 17px;
+  min-height: 0;
+  overflow: hidden;
+}
+#palette-open[aria-expanded="true"] {
+  background: var(--tint);
+  border-color: var(--accent);
 }
 .category-tabs {
   display: flex;
@@ -198,9 +281,22 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .category-tabs {
-    max-height: 155px;
-    overflow: auto;
+    flex-wrap: nowrap;
+    overflow-x: auto;
     padding: 3px;
+  }
+  .category-tabs button {
+    flex: none;
+  }
+  .palette-panel {
+    padding: 8px 10px;
+    max-height: 40vh;
+  }
+  .palette-panel .symbol-grid {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  }
+  .recent-row {
+    padding: 6px 10px;
   }
   .category-tabs button {
     min-height: 44px;
@@ -226,7 +322,428 @@
   }
 }
 @media print {
+  .palette-panel,
+  .recent-row,
   .extended-tools {
     display: none !important;
   }
+}
+
+/* Favoris : une étoile à côté de chaque outil, accessible au clavier et au toucher. */
+.symbol-item {
+  position: relative;
+  min-width: 0;
+  display: grid;
+}
+.symbol-item .symbol-card {
+  width: 100%;
+}
+.pin-button {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1;
+  opacity: 0.55;
+}
+.pin-button[aria-pressed="true"] {
+  color: var(--accent);
+  opacity: 1;
+}
+.symbol-item:hover .pin-button,
+.pin-button:focus-visible {
+  opacity: 1;
+}
+.pin-button:hover {
+  background: var(--tint);
+}
+.palette-empty {
+  grid-column: 1 / -1;
+  margin: 6px 0;
+  color: var(--muted);
+}
+
+/* Menu « Plus » : les actions rares, hors du premier niveau. */
+.more-menu {
+  position: relative;
+}
+.more-menu summary {
+  list-style: none;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  padding: 8px 12px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+}
+.more-menu summary::-webkit-details-marker {
+  display: none;
+}
+.more-menu summary::after {
+  content: "▾";
+  margin-left: 6px;
+  font-size: 11px;
+}
+.more-menu[open] summary,
+.more-menu summary:hover {
+  background: var(--tint);
+  border-color: var(--accent);
+}
+.more-list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 190px;
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+.more-list button {
+  text-align: left;
+  width: 100%;
+}
+
+/* Saisie dans l'aperçu : la zone visée est entourée, le champ s'ouvre dessous. */
+.preview-surface {
+  position: relative;
+}
+/* Anneau intérieur : il ne recouvre jamais la barre de fraction ni le trait de racine. */
+#preview .khw-editable {
+  cursor: text;
+}
+#preview .khw-editable:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+#preview .khw-editing,
+#preview .khw-editing:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.inplace-input {
+  position: absolute;
+  z-index: 5;
+  box-sizing: border-box;
+  height: 38px;
+  padding: 6px 8px;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  background: var(--panel);
+  color: inherit;
+  font: 16px/1.2 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.inplace-input:focus {
+  outline: none;
+}
+.inplace-input.invalid {
+  border-color: #c2410c;
+}
+@media (max-width: 800px) {
+  .pin-button {
+    width: 36px;
+    height: 36px;
+  }
+  .more-menu summary {
+    min-height: 44px;
+  }
+  .more-list button {
+    min-height: 44px;
+  }
+  .inplace-input {
+    height: 44px;
+  }
+}
+
+/* Ordinateur : l'aperçu reste visible quand la palette agrandit l'éditeur. */
+@media (min-width: 801px) {
+  .workspace {
+    overflow: clip;
+    align-items: start;
+  }
+  .editor-pane {
+    align-self: stretch;
+  }
+  .preview-pane {
+    position: sticky;
+    top: 12px;
+    max-height: calc(100vh - 24px);
+  }
+}
+@media print {
+  .more-menu,
+  .inplace-input,
+  #preview-edit {
+    display: none !important;
+  }
+  #preview .khw-editable,
+  #preview .khw-editing {
+    box-shadow: none !important;
+    background: none !important;
+  }
+}
+@media (max-width: 800px) {
+  .preview-foot {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .preview-foot #render-status {
+    flex: 1 0 100%;
+  }
+  .preview-foot .button {
+    flex: 1 1 0;
+  }
+}
+
+/* Design émotionnel : accueil, réussite, astuce. Discret, jamais bloquant. */
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 8px;
+  color: var(--muted);
+  font-size: 15px;
+  text-align: center;
+}
+.empty-state p {
+  margin: 0;
+}
+.empty-mark {
+  font-size: 44px;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.7;
+}
+.empty-hint {
+  font-size: 13px;
+}
+.complete-badge {
+  margin: 0;
+  white-space: nowrap;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #16a34a 14%, var(--panel));
+  color: color-mix(in srgb, #15803d 85%, var(--ink));
+  border: 1px solid color-mix(in srgb, #16a34a 35%, transparent);
+  font-size: 13px;
+  font-weight: 600;
+  pointer-events: none;
+}
+.preview-surface.celebrate {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, #16a34a 30%, transparent);
+}
+.save-status.saved::before {
+  content: "✓ ";
+}
+.save-status.saved {
+  color: color-mix(in srgb, #15803d 80%, var(--muted));
+}
+.coach {
+  align-self: center;
+  max-width: 420px;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 14px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  box-shadow: var(--shadow);
+  font-size: 13px;
+}
+.coach p {
+  margin: 0;
+  flex: 1;
+}
+.coach > span {
+  color: var(--accent);
+  font-size: 18px;
+}
+.coach .icon-button {
+  min-width: 36px;
+  min-height: 36px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .complete-badge:not([hidden]) {
+    animation: badge-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .preview-surface {
+    transition: box-shadow 0.6s ease-out;
+  }
+  .coach:not([hidden]) {
+    animation: coach-in 0.35s ease-out;
+  }
+  .empty-mark {
+    animation: breathe 3.2s ease-in-out infinite;
+  }
+  .symbol-card:active,
+  .recent-chip:active {
+    transform: scale(0.96);
+  }
+  .symbol-card,
+  .recent-chip {
+    transition: transform 0.08s, background 0.15s, border-color 0.15s;
+  }
+  .pin-button[aria-pressed="true"] {
+    animation: badge-pop 0.35s ease-out;
+  }
+  @keyframes badge-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.7);
+    }
+  }
+  .pin-button[aria-pressed="true"] {
+    animation-name: star-pop;
+  }
+  @keyframes star-pop {
+    50% {
+      transform: scale(1.35);
+    }
+  }
+  @keyframes coach-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  @keyframes breathe {
+    50% {
+      opacity: 0.4;
+      transform: scale(0.94);
+    }
+  }
+}
+@media print {
+  .coach,
+  .complete-badge,
+  .empty-state {
+    display: none !important;
+  }
+}
+
+/* Pied de l'aperçu : le badge de réussite remplace un instant le temps de rendu. */
+.preview-foot {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.preview-foot:has(#complete-badge:not([hidden])) #render-status {
+  display: none;
+}
+
+/* Dessin de molécule */
+#molecule-dialog {
+  width: min(760px, calc(100vw - 24px));
+}
+.molecule-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.molecule-tools button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+}
+.molecule-tools button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--tint);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.molecule-stage {
+  position: relative;
+  margin: 12px 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  overflow: hidden;
+}
+#molecule-board {
+  display: block;
+  width: 100%;
+  height: min(320px, 40vh);
+  touch-action: none;
+  cursor: crosshair;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+#molecule-board .khw-mol-solid,
+#molecule-board .khw-mol-text,
+#molecule-board .khw-mol-small {
+  fill: currentColor;
+  stroke: none;
+  font: 24px "KhwarizmTeX Text", serif;
+}
+#molecule-board .khw-mol-small {
+  font-size: 17px;
+}
+.molecule-dot {
+  fill: transparent;
+  stroke: transparent;
+}
+.molecule-dot:hover {
+  fill: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.molecule-preview {
+  stroke: var(--accent);
+  stroke-dasharray: 4 5;
+}
+#molecule-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 16px;
+  color: var(--muted);
+  text-align: center;
+  pointer-events: none;
+}
+#molecule-empty[hidden] {
+  display: none;
+}
+#molecule-source {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px ui-monospace, Menlo, Consolas, monospace;
+}
+#molecule-template {
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+}
+#molecule-bonds button,
+#molecule-tools button[data-kind="ring"] {
+  font-size: 22px;
 }

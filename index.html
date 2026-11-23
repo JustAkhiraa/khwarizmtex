@@ -11,7 +11,7 @@
       name="description"
       content="Un atelier de formules et de documents mathématiques. Local, sans compte et sans suivi."
     />
-    <title>KhwarizmTeX Online — L’atelier mathématique</title>
+    <title>KhwarizmTeX Online, l’atelier mathématique</title>
     <link rel="stylesheet" href="engine/khwarizm.css" data-khwarizm />
     <link rel="stylesheet" href="engine/khwarizm-fonts.css" />
     <link rel="stylesheet" href="online.css" />
@@ -143,7 +143,7 @@
               <div class="pane-heading">
                 <h2 id="editor-heading">
                   <span class="pane-dot" aria-hidden="true"></span> Éditeur
-                  <span class="pill" id="language">LaTeX</span>
+                  <span class="pill" id="language">Formule</span>
                 </h2>
                 <div class="history-actions">
                   <button
@@ -176,19 +176,80 @@
                 role="group"
                 aria-label="Outils mathématiques avancés"
               >
-                <button type="button" id="palette-open">
+                <button
+                  type="button"
+                  id="palette-open"
+                  aria-expanded="false"
+                  aria-controls="palette-panel"
+                >
                   Tous les symboles
                 </button>
                 <button type="button" id="matrix-open">Matrices</button>
+                <button type="button" id="molecule-open">Molécules</button>
                 <button type="button" id="appearance-open">Présentation</button>
-                <button
-                  type="button"
-                  id="join-lines"
-                  title="Remplacer les retours de ligne par des espaces"
-                >
-                  Joindre les lignes
-                </button>
+                <details class="more-menu" id="more-menu">
+                  <summary>Plus</summary>
+                  <div class="more-list">
+                    <button
+                      type="button"
+                      id="join-lines"
+                      title="Remplacer les retours de ligne par des espaces"
+                    >
+                      Joindre les lignes
+                    </button>
+                  </div>
+                </details>
               </div>
+              <p class="sr-only" id="tool-status" role="status" aria-live="polite"></p>
+              <div class="recent-row" id="recent-row" hidden>
+                <span class="recent-label" id="recent-label">Récents</span>
+                <div
+                  class="recent-list"
+                  id="recent-list"
+                  role="group"
+                  aria-labelledby="recent-label"
+                ></div>
+              </div>
+              <section
+                class="palette-panel"
+                id="palette-panel"
+                aria-label="Symboles et formules"
+                hidden
+              >
+                <div class="palette-search-row">
+                  <label class="sr-only" for="palette-search"
+                    >Rechercher un symbole</label
+                  ><input
+                    id="palette-search"
+                    class="search"
+                    type="search"
+                    placeholder="Chercher : alpha, dérivée, flèche…"
+                  /><button
+                    type="button"
+                    class="icon-button"
+                    id="palette-clear"
+                    aria-label="Effacer la recherche"
+                    hidden
+                  >
+                    ×
+                  </button>
+                </div>
+                <div
+                  id="palette-categories"
+                  class="category-tabs"
+                  role="group"
+                  aria-label="Familles de symboles"
+                ></div>
+                <p id="science-note" class="tool-note" hidden>
+                  Modèles chimiques en notation standard. Pas encore de
+                  structures moléculaires ni de syntaxe mhchem.
+                </p>
+                <p id="palette-count" class="palette-count" role="status"></p>
+                <div id="palette-grid" class="symbol-grid"></div>
+                <button id="palette-more" class="button" type="button">
+                  Afficher davantage
+                </button>
+              </section>
               <div class="source-wrap">
                 <label for="source" class="sr-only">Source</label
                 ><textarea
@@ -243,14 +304,30 @@
               </div>
               <div class="preview-surface" id="preview-surface">
                 <div id="preview" class="formula-preview"></div>
+                <div class="coach" id="coach" hidden>
+                  <span aria-hidden="true">✎</span>
+                  <p>Astuce : touchez un nombre de l’aperçu pour le modifier ici.</p>
+                  <button type="button" class="icon-button" id="coach-close" aria-label="Fermer l’astuce">×</button>
+                </div>
                 <div class="preview-caption" id="preview-caption">
                   La beauté d’une idée, dans sa forme la plus simple.
                 </div>
               </div>
               <div class="preview-foot">
                 <span id="render-status" role="status">Prêt à écrire</span
+                ><span class="complete-badge" id="complete-badge" role="status" hidden
+                  >✓ Formule complète</span
+                ><button
+                  type="button"
+                  class="button quiet small"
+                  id="preview-edit"
+                  title="Ou cliquez directement sur un numérateur, un dénominateur ou une racine"
+                  hidden
+                >
+                  Modifier dans l’aperçu
+                </button
                 ><button type="button" class="button quiet small" id="copy">
-                  Copier le LaTeX
+                  Copier la source
                 </button>
               </div>
             </section>
@@ -320,7 +397,7 @@
       </div>
       <h3>Formule</h3>
       <p>
-        Écrivez du LaTeX ou utilisez la barre de symboles. Une sélection est
+        Écrivez une formule ou utilisez la barre de symboles. Une sélection est
         insérée dans la structure choisie. Tapez <code>\fra</code>, puis Tab
         pour insérer une fraction.
       </p>
@@ -343,7 +420,7 @@
         JSON et PDF. Vérifiez l’aperçu, puis confirmez le remplacement du
         brouillon. Vous pourrez retrouver l’ancien contenu avec Annuler. Les PDF
         fournissent du texte sélectionnable : les scans et la conversion
-        automatique des formules en LaTeX ne sont pas encore pris en charge.
+        automatique des formules ne sont pas encore pris en charge.
       </p>
       <h3>Raccourcis</h3>
       <p>
@@ -363,7 +440,7 @@
         Ce mode Document n’est pas un compilateur TeX complet : pas de packages,
         bibliographie, images ni collaboration en ligne. PDF utilise la boîte
         d’impression du navigateur. Le moteur ne prend pas encore en charge
-        toutes les commandes LaTeX.
+        toutes les commandes.
       </p>
     </dialog>
     <dialog id="export-dialog" aria-labelledby="export-title">
@@ -382,10 +459,10 @@
         <button type="button" data-export="source">
           <strong>Source</strong
           ><span
-            >LaTeX pour une formule, texte structuré pour un document</span
+            >Source pour une formule, texte structuré pour un document</span
           ></button
         ><button type="button" data-export="mathml" id="export-mathml">
-          <strong>MathML</strong
+          <strong>Balisage natif</strong
           ><span>La formule dans un format mathématique ouvert</span></button
         ><button type="button" data-export="print">
           <strong>Imprimer / PDF</strong
@@ -406,52 +483,6 @@
         accept=".json,application/json"
         hidden
       />
-    </dialog>
-    <dialog
-      id="palette-dialog"
-      class="wide-dialog"
-      aria-labelledby="palette-title"
-    >
-      <div class="dialog-head">
-        <div>
-          <p class="eyebrow">VOTRE BOÎTE À OUTILS</p>
-          <h2 id="palette-title">Symboles et formules</h2>
-        </div>
-        <button
-          type="button"
-          class="icon-button"
-          data-close
-          aria-label="Fermer les symboles"
-        >
-          ×
-        </button>
-      </div>
-      <p>
-        Un clic insère à la position du curseur. Une sélection remplace le
-        premier carré du modèle.
-      </p>
-      <label class="sr-only" for="palette-search">Rechercher un symbole</label
-      ><input
-        id="palette-search"
-        class="search"
-        type="search"
-        placeholder="Chercher : alpha, dérivée, énergie, flèche…"
-      />
-      <div
-        id="palette-categories"
-        class="category-tabs"
-        role="group"
-        aria-label="Familles de symboles"
-      ></div>
-      <p id="science-note" class="tool-note" hidden>
-        Modèles chimiques en LaTeX standard. Pas encore de structures
-        moléculaires ni de syntaxe mhchem.
-      </p>
-      <p id="palette-count" role="status"></p>
-      <div id="palette-grid" class="symbol-grid"></div>
-      <button id="palette-more" class="button" type="button">
-        Afficher davantage
-      </button>
     </dialog>
     <dialog id="matrix-dialog" aria-labelledby="matrix-title">
       <div class="dialog-head">
@@ -496,7 +527,7 @@
         >
       </div>
       <p>
-        Chaque cellule accepte une expression LaTeX. Les cellules vides
+        Chaque cellule accepte une expression. Les cellules vides
         deviennent des carrés à compléter.
       </p>
       <div class="matrix-scroll">
@@ -510,6 +541,57 @@
         ><button id="matrix-insert" class="button primary" type="button">
           Insérer la matrice
         </button>
+      </div>
+    </dialog>
+    <dialog id="molecule-dialog" aria-labelledby="molecule-title">
+      <div class="dialog-head">
+        <h2 id="molecule-title">Dessiner une molécule</h2>
+        <button type="button" class="icon-button" data-close aria-label="Fermer le dessin">×</button>
+      </div>
+      <div class="molecule-tools" id="molecule-tools" role="group" aria-label="Atomes et outils">
+          <button type="button" data-kind="atom" data-value="C" aria-pressed="true" aria-label="Carbone" title="Carbone">C</button>
+          <button type="button" data-kind="atom" data-value="H" aria-pressed="false" aria-label="Hydrogène" title="Hydrogène">H</button>
+          <button type="button" data-kind="atom" data-value="O" aria-pressed="false" aria-label="Oxygène" title="Oxygène">O</button>
+          <button type="button" data-kind="atom" data-value="N" aria-pressed="false" aria-label="Azote" title="Azote">N</button>
+          <button type="button" data-kind="atom" data-value="S" aria-pressed="false" aria-label="Soufre" title="Soufre">S</button>
+          <button type="button" data-kind="atom" data-value="P" aria-pressed="false" aria-label="Phosphore" title="Phosphore">P</button>
+          <button type="button" data-kind="atom" data-value="F" aria-pressed="false" aria-label="Fluor" title="Fluor">F</button>
+          <button type="button" data-kind="atom" data-value="Cl" aria-pressed="false" aria-label="Chlore" title="Chlore">Cl</button>
+          <button type="button" data-kind="atom" data-value="Br" aria-pressed="false" aria-label="Brome" title="Brome">Br</button>
+          <button type="button" data-kind="atom" data-value="I" aria-pressed="false" aria-label="Iode" title="Iode">I</button>
+          <button type="button" data-kind="charge" data-value="+" aria-pressed="false" aria-label="Charge positive" title="Charge positive">+</button>
+          <button type="button" data-kind="charge" data-value="-" aria-pressed="false" aria-label="Charge négative" title="Charge négative">−</button>
+          <button type="button" data-kind="ring" data-value="" data-size="6" aria-pressed="false" aria-label="Cycle à six" title="Cycle à six">⬡</button>
+          <button type="button" data-kind="ring" data-value="" data-size="6" data-alternate="1" aria-pressed="false" aria-label="Cycle benzénique" title="Cycle benzénique">⌬</button>
+          <button type="button" data-kind="ring" data-value="" data-size="5" aria-pressed="false" aria-label="Cycle à cinq" title="Cycle à cinq">⬠</button>
+          <button type="button" data-kind="erase" data-value="" aria-pressed="false" aria-label="Effacer un atome ou une liaison" title="Effacer un atome ou une liaison">Gomme</button>
+      </div>
+      <div class="molecule-tools" id="molecule-bonds" role="group" aria-label="Type de liaison">
+          <button type="button" data-mark="-" aria-pressed="true" title="Liaison simple" aria-label="Liaison simple">–</button>
+          <button type="button" data-mark="=" aria-pressed="false" title="Liaison double" aria-label="Liaison double">=</button>
+          <button type="button" data-mark="#" aria-pressed="false" title="Liaison triple" aria-label="Liaison triple">≡</button>
+          <button type="button" data-mark="&gt;" aria-pressed="false" title="Coin plein, vers l’avant" aria-label="Coin plein, vers l’avant">◀</button>
+          <button type="button" data-mark="&lt;" aria-pressed="false" title="Coin hachuré, vers l’arrière" aria-label="Coin hachuré, vers l’arrière">┅</button>
+      </div>
+      <div class="molecule-stage">
+        <svg id="molecule-board" role="img" aria-label="Zone de dessin. La description ci-dessous permet de tout faire au clavier."></svg>
+        <p id="molecule-empty">Touchez pour poser un atome, puis tirez pour ajouter une liaison.</p>
+      </div>
+      <label class="tool-setting" for="molecule-source"
+        >Description (modifiable au clavier)<input id="molecule-source" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="\molecule{C 0 0, O 1 0 | 1-2}"
+      /></label>
+      <p id="molecule-error" role="alert"></p>
+      <div class="dialog-actions">
+        <select id="molecule-template" aria-label="Partir d’un modèle">
+          <option value="">Modèles</option>
+          <option value="benzene">Benzène</option>
+          <option value="ethanol">Éthanol</option>
+          <option value="acetic">Acide éthanoïque</option>
+          <option value="water">Eau</option>
+        </select>
+        <button type="button" class="button" id="molecule-undo">Annuler</button>
+        <button type="button" class="button" id="molecule-clear">Tout effacer</button>
+        <button type="button" class="button primary" id="molecule-insert">Insérer la molécule</button>
       </div>
     </dialog>
     <dialog id="appearance-dialog" aria-labelledby="appearance-title">
@@ -547,7 +629,7 @@
         </select></label
       >
       <p>
-        La couleur insérée fait partie du LaTeX. La taille et le fond concernent
+        La couleur insérée fait partie de la source. La taille et le fond concernent
         seulement l’aperçu et ne sont pas sauvegardés. L’impression garde un
         fond blanc. Les styles de texte sont dans « Tous les symboles ».
       </p>
@@ -565,7 +647,7 @@
         </button>
       </div>
       <p>
-        Markdown, texte, formule LaTeX, sauvegarde JSON ou PDF avec texte
+        Markdown, texte, formule, sauvegarde JSON ou PDF avec texte
         sélectionnable. Le traitement reste sur cet appareil.
       </p>
       <label class="file-picker" for="document-file"
