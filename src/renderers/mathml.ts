@@ -137,7 +137,7 @@ function symbol(node: SymbolNode, unary: boolean): VElement {
 /** Opérateur avec son trait (\varlimsup) et ses indices latéraux (\sideset). */
 function fullOp(node: OpNode, movable: boolean, display: boolean): VElement {
   let out = op(node.name, node.symbol, movable);
-  if (node.mark) out = el(node.mark === 'over' ? 'mover' : 'munder', {}, [out, el('mo', { stretchy: 'true' }, ['¯'])]);
+  if (node.mark) out = el(node.mark === 'over' ? 'mover' : 'munder', {}, [out, el('mo', { stretchy: 'true' }, [node.mark === 'over' ? '‾' : '_'])]);
   if (node.sides) out = el('mrow', {}, [convert(node.sides.left, display, false), out, convert(node.sides.right, display, false)]);
   return out;
 }
@@ -192,17 +192,33 @@ function array(node: ArrayNode, display: boolean): VNode {
   const aligned = node.kind === 'aligned' || node.kind === 'gathered';
   const columns = node.rows.reduce((m, r) => Math.max(m, rowWidth(r)), 0);
   const names: Record<string, string> = { l: 'left', c: 'center', r: 'right' };
-  const rows = node.rows.map((cells) =>
+  // Diagramme : l'étiquette d'un côté de la flèche est équilibrée par son fantôme de
+  // l'autre côté ; la largeur nulle n'est pas rendue pareil d'un navigateur à l'autre.
+  const balanced = (cell: MathNode[]): MathNode[] => {
+    const [l, arrow, r] = cell;
+    if (cell.length !== 3 || l?.type !== 'enclose' || l.notation !== 'llap' || arrow?.type !== 'delim' || r?.type !== 'enclose' || r.notation !== 'rlap') return cell;
+    const ghost = (body: MathNode): MathNode => ({ type: 'phantom', body, horizontal: true, vertical: true }) as MathNode;
+    return [ghost(r.body), l.body, arrow, r.body, ghost(l.body)];
+  };
+  const rows = node.rows.map((cells, i) =>
     el(
       'mtr',
       {},
       placed(cells, columns).map(({ cell, at: j, width }) => {
         const span = cellSpan(cell);
         const align = names[span?.align ?? node.cols[j] ?? node.cols[node.cols.length - 1] ?? 'c'] ?? 'center';
+        // Filets et écarts en CSS : Chromium ne lit pas les attributs, et les deux ensemble se cumuleraient.
+        const css: string[] = [];
+        if (align !== 'center') css.push(`text-align:${align}`, `justify-items:${align}`);
+        if (node.kind === 'aligned') {
+          css.push('padding-left:0', `padding-right:${j + width >= columns ? '0' : (j + width) % 2 ? '0' : '2em'}`);
+        }
+        if (j + width < columns && node.colLines[j + width]) css.push('border-right:max(1px, 0.05em) solid');
+        if (i + 1 < node.rows.length && node.rowLines[i + 1]) css.push('border-bottom:max(1px, 0.05em) solid');
         return el(
           'mtd',
-          { ...(align === 'center' ? {} : { columnalign: align, style: `text-align:${align}` }), ...(width > 1 ? { columnspan: String(width) } : {}) },
-          [row(list(cell, display || aligned))],
+          { ...(align === 'center' ? {} : { columnalign: align }), style: css.join(';'), ...(width > 1 ? { columnspan: String(width) } : {}) },
+          [row(list(balanced(cell), display || aligned))],
         );
       }),
     ),
@@ -211,17 +227,11 @@ function array(node: ArrayNode, display: boolean): VNode {
   if (aligned) {
     attrs['displaystyle'] = 'true';
     attrs['rowspacing'] = '0.25em';
-    if (node.kind === 'aligned') {
-      attrs['columnspacing'] = Array.from({ length: Math.max(0, columns - 1) }, (_, j) => (j % 2 === 0 ? '0em' : '2em')).join(' ') || undefined;
-    }
+    // Écart nul ici, posé en CSS : certains navigateurs le rajoutent d'office.
+    if (node.kind === 'aligned') attrs['columnspacing'] = '0em';
   }
   if (node.kind === 'small') attrs['scriptlevel'] = '1';
-  if (node.colLines.some(Boolean)) {
-    attrs['columnlines'] = node.colLines.slice(1, columns).map((l) => (l ? 'solid' : 'none')).join(' ') || undefined;
-  }
-  if (node.rowLines.some(Boolean)) {
-    attrs['rowlines'] = node.rowLines.slice(1, node.rows.length).map((l) => (l ? 'solid' : 'none')).join(' ') || undefined;
-  }
+  if (node.colLines.some(Boolean) || node.rowLines.some(Boolean)) attrs['style'] = 'border-collapse:collapse';
   const table = el('mtable', attrs, rows);
   if (node.left === undefined && node.right === undefined) return table;
   const children: VNode[] = [];
@@ -331,7 +341,7 @@ function convert(node: MathNode, display: boolean, unary: boolean): VNode {
       if (node.notation === 'raise') return el('mpadded', { voffset: em(node.shift ?? 0) }, [convertArg(node.body, display)]);
       if (node.notation === 'llap' || node.notation === 'rlap' || node.notation === 'clap') {
         const lspace = node.notation === 'llap' ? '-1width' : node.notation === 'clap' ? '-0.5width' : '0';
-        return el('mpadded', { width: '0', lspace }, [convertArg(node.body, display)]);
+        return el('mpadded', { width: '0', lspace }, [node.notation === 'rlap' ? convertArg(node.body, display) : el('mrow', {}, [convertArg(node.body, display)])]);
       }
       return el('menclose', { notation: NOTATIONS[node.notation] ?? 'box' }, [convertArg(node.body, display)]);
     case 'ref':

@@ -17,8 +17,8 @@ const DOM_PARTS = {
     find: (box, part) => child(box, part.role === "index" ? ".khw-root" : ".khw-radicand"),
   },
   // Exposant ou borne du haut d'une somme affichée en grand.
-  sup: { selector: "sup, .khw-limits > .khw-over, .khw-braced > .khw-over > .khw-brace-label", find: (box) => box },
-  sub: { selector: "sub, .khw-limits > .khw-under, .khw-braced > .khw-under > .khw-brace-label", find: (box) => box },
+  sup: { selector: "sup, .khw-limits > .khw-col > .khw-up > .khw-over, .khw-braced > .khw-over > .khw-brace-label", find: (box) => box },
+  sub: { selector: "sub, .khw-limits > .khw-low > .khw-under, .khw-braced > .khw-under > .khw-brace-label", find: (box) => box },
   accent: { selector: ".khw-accent", find: (box) => child(box, ".khw-base") },
   text: { selector: ".khw-text", find: (box) => box },
   fenced: { selector: ".khw-lr", find: (box) => box },
@@ -28,8 +28,10 @@ const DOM_PARTS = {
   },
   brace: { selector: ".khw-braced", find: (box) => child(box, ".khw-base") },
   arrow: {
-    selector: ".khw-stack:has(> .khw-base > .khw-xarrow)",
-    find: (box, part) => child(box, part.role === "under" ? ".khw-under" : ".khw-over"),
+    selector: ".khw-xstack",
+    find: (box, part) => box.querySelector(
+      part.role === "under" ? ":scope > .khw-low > .khw-under" : ":scope > .khw-col > .khw-up > .khw-over",
+    ),
   },
   font: { selector: ".khw-font", find: (box) => box },
   boxed: { selector: ".khw-boxed", find: (box) => box },

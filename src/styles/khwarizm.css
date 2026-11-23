@@ -154,6 +154,51 @@
   font-family: var(--khw-font-math, "STIX Two Math", "Cambria Math", "Latin Modern Math", math);
 }
 
+/* Chromium n'a pas <menclose> : il en dessine les traits ici. Firefox et Safari les tracent eux-mêmes. */
+@supports (-webkit-app-region: inherit) {
+  .khw-mathml mpadded[lspace="-1width"] > mrow {
+    transform: translateX(-100%);
+  }
+
+  .khw-mathml mpadded[lspace="-0.5width"] > mrow {
+    transform: translateX(-50%);
+  }
+
+  .khw-mathml menclose {
+    --khw-up: linear-gradient(to bottom right, transparent calc(50% - 0.5px), currentColor calc(50% - 0.5px), currentColor calc(50% + 0.5px), transparent calc(50% + 0.5px));
+    --khw-down: linear-gradient(to top right, transparent calc(50% - 0.5px), currentColor calc(50% - 0.5px), currentColor calc(50% + 0.5px), transparent calc(50% + 0.5px));
+    background-repeat: no-repeat;
+  }
+
+  .khw-mathml menclose[notation^="updiagonalstrike"] {
+    background-image: var(--khw-up);
+  }
+
+  .khw-mathml menclose[notation="downdiagonalstrike"] {
+    background-image: var(--khw-down);
+  }
+
+  .khw-mathml menclose[notation="updiagonalstrike downdiagonalstrike"] {
+    background-image: var(--khw-up), var(--khw-down);
+  }
+
+  .khw-mathml menclose[notation="horizontalstrike"] {
+    background: linear-gradient(currentColor, currentColor) 0 60% / 100% max(1px, 0.05em) no-repeat;
+  }
+
+  .khw-mathml menclose[notation="box"] {
+    padding: 0.25em;
+    border: max(1px, 0.05em) solid;
+  }
+
+  .khw-mathml menclose[notation="longdiv"] {
+    padding: 0.12em 0.1em 0 0.35em;
+    border-top: max(1px, 0.05em) solid;
+    border-left: max(1px, 0.05em) solid;
+    border-bottom-left-radius: 0.5em 100%;
+  }
+}
+
 /* Caractères */
 
 .khw var {
@@ -478,11 +523,38 @@
   caption-side: bottom;
 }
 
-.khw .khw-limits > .khw-over {
+/* Bornes et flèches : deux rangs, la ligne de base reste celle de la base. */
+.khw .khw-col {
+  display: table-cell;
+  vertical-align: baseline;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.khw .khw-up {
+  display: inline-block;
+  width: 100%;
+}
+
+.khw .khw-low {
+  display: table-row;
+}
+
+.khw .khw-up > .khw-over,
+.khw .khw-up > .khw-base,
+.khw .khw-low > .khw-under {
+  display: block;
+}
+
+.khw .khw-limits > .khw-col > .khw-up > .khw-over {
   padding-bottom: 0.12em;
 }
 
-.khw .khw-limits > .khw-under {
+.khw .khw-up > .khw-over:has(+ .khw-base > .khw-op-over) {
+  padding-bottom: 0.3em;
+}
+
+.khw .khw-limits > .khw-low > .khw-under {
   padding-top: 0.16em;
 }
 
@@ -559,6 +631,24 @@
   height: 0.13em;
 }
 
+.khw .khw-xstack > .khw-col {
+  line-height: 0;
+}
+
+.khw .khw-xstack > .khw-col > .khw-up > .khw-over {
+  line-height: 1;
+}
+
+/* Posée sur la ligne de base : son milieu tombe sur l'axe. */
+.khw .khw-up > .khw-base:has(> .khw-xarrow) {
+  line-height: 0;
+}
+
+.khw .khw-up > .khw-base > .khw-xarrow {
+  display: inline-block;
+  width: calc(100% - 0.24em);
+}
+
 .khw .khw-xarrow {
   min-width: 1.6em;
   height: 0.5em;
@@ -570,11 +660,11 @@
   padding-right: 0.5em;
 }
 
-.khw .khw-xstack > .khw-over {
+.khw .khw-xstack > .khw-col > .khw-up > .khw-over {
   padding-bottom: 0.02em;
 }
 
-.khw .khw-xstack > .khw-under {
+.khw .khw-xstack > .khw-low > .khw-under {
   padding-top: 0.06em;
 }
 

@@ -229,3 +229,29 @@ test("aperçu : document long, la bonne formule change et la frappe reste fluide
   expect(value.split("}{7}").length).toBe(2);
   expect(value.slice(0, value.indexOf("}{7}")).split("\\frac").length - 1).toBe(101);
 });
+
+test("bornes et étiquettes : le haut et le bas sont visibles, centrés et du bon côté", async ({ page }) => {
+  for (const source of ["\\sum_{i=1}^{n} i", "\\xrightarrow[b]{texte}"]) {
+    await page.fill("#source", source);
+    const stack = page.locator("#preview :is(.khw-limits, .khw-xstack)").first();
+    await expect(stack).toBeVisible();
+    await expect
+      .poll(() =>
+        stack.evaluate((el) => {
+          const [over, base, under] = [".khw-over", ".khw-base", ".khw-under"].map((s) => el.querySelector(s)?.getBoundingClientRect());
+          if (!over || !base || !under || !over.height || !under.height) return "absent";
+          if (!(over.top < base.top && under.bottom > base.bottom)) return "mal placé";
+          const mid = (r: DOMRect) => r.left + r.width / 2;
+          return Math.abs(mid(over) - mid(base)) < 2 && Math.abs(mid(under) - mid(base)) < 2 ? "ok" : "décentré";
+        }),
+      )
+      .toBe("ok");
+  }
+});
+
+test("aperçu : les étiquettes d'une flèche se modifient", async ({ page }) => {
+  await page.fill("#source", "\\xrightarrow[b]{a}");
+  await page.locator('#preview [data-slot="arrow:0:under"]').click();
+  await page.locator("#inplace-input").fill("c");
+  await expect(page.locator("#source")).toHaveValue("\\xrightarrow[c]{a}");
+});

@@ -636,9 +636,17 @@ class HtmlRenderer {
     under: { node: VElement; height: number } | null,
   ): Box {
     const children: VNode[] = [];
-    if (over) children.push(over.node);
-    children.push(el('span', { class: 'khw-base' }, [base.node]));
-    if (under) children.push(under.node);
+    const baseNode = el('span', { class: 'khw-base' }, [base.node]);
+    if (className === 'khw-limits' || className === 'khw-xstack') {
+      // Ni légende double (Firefox n'en affiche qu'une) ni légende étroite : le haut partage
+      // un bloc avec la base (ligne de base du dernier rang), le bas occupe un second rang.
+      children.push(el('span', { class: 'khw-col' }, [el('span', { class: 'khw-up' }, over ? [over.node, baseNode] : [baseNode])]));
+      if (under) children.push(el('span', { class: 'khw-low' }, [under.node]));
+    } else {
+      if (over) children.push(over.node);
+      children.push(baseNode);
+      if (under) children.push(under.node);
+    }
     const top = Math.max(LINE_ASCENT, base.h);
     const bottom = Math.max(LINE_DESCENT, base.d);
     return {
