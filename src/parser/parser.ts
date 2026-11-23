@@ -597,6 +597,17 @@ export class Parser {
     return node;
   }
 
+  /** Lit une source fabriquée par une commande (\ce, \SI), placée sur l'appel. */
+  parseSource(source: string, cmd: Token): MathNode {
+    const tokens = tokenize(source);
+    tokens.pop(); // eof
+    const at = { start: cmd.start, end: cmd.end };
+    this.pushBack({ kind: 'close', text: '}', ...at });
+    for (const t of tokens.reverse()) this.pushBack({ ...t, ...at });
+    this.pushBack({ kind: 'open', text: '{', ...at });
+    return this.parseArg(cmd);
+  }
+
   /** Argument optionnel [...] en mode mathématique, ou null s'il est absent. */
   parseOptionalArg(): MathNode | null {
     const t = this.peek();

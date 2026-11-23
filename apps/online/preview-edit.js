@@ -40,8 +40,6 @@ const KIND_NAMES = {
   fenced: " des parenthèses ",
   boxed: " du cadre ",
 };
-const EDITABLE =
-  ".khw-num, .khw-den, .khw-radicand, .khw-root, .khw-html sup, .khw-html sub, .khw-over, .khw-under, .khw-mtd, .khw-text, .khw-lr, .khw-boxed";
 const squash = (text) => text.replace(/[\s​⁡-⁤]+/g, "");
 function balanced(text) {
   let depth = 0;
@@ -231,7 +229,7 @@ export function bindPreviewEditor({
       if (part) source.setSelectionRange(part.start, part.end);
       return;
     }
-    if (event.target.closest(EDITABLE))
+    if (event.target.closest(".khw-html"))
       notify(
         "Cette partie ne peut pas être reliée avec certitude à la source : modifiez-la à gauche.",
       );

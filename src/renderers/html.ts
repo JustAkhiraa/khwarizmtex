@@ -159,6 +159,9 @@ const ACCENT_MARKS: Record<string, string> = {
 /** Tracés des accents larges (viewBox 0 0 1000 300, étirés à la largeur). */
 const WIDE_ACCENTS: Record<string, string> = {
   hat: 'M0 270L500 30L1000 270',
+  uarc: 'M0 30C250 350 750 350 1000 30',
+  bracket: 'M0 270V60H1000V270',
+  ubracket: 'M0 30V240H1000V30',
   arc: 'M0 270C250 -50 750 -50 1000 270',
   check: 'M0 30L500 270L1000 30',
   tilde: 'M0 230C120 40 300 30 500 150S880 260 1000 70',
@@ -470,7 +473,7 @@ class HtmlRenderer {
     const frac = el(
       'span',
       { class: cls('khw-frac', display && 'khw-frac-d', !node.bar && 'khw-frac-nobar', fenced && 'khw-frac-fenced') },
-      [el('span', { class: cls('khw-num', size) }, num.nodes), el('span', { class: cls('khw-den', size) }, den.nodes)],
+      [el('span', { class: cls('khw-num', size, node.align && `khw-a${node.align}`) }, num.nodes), el('span', { class: cls('khw-den', size) }, den.nodes)],
     );
     const numHeight = (Math.max(LINE_ASCENT, num.h) + Math.max(LINE_DESCENT, num.d)) * r + gap;
     const denHeight = (Math.max(LINE_ASCENT, den.h) + Math.max(LINE_DESCENT, den.d)) * r + gap;
@@ -794,6 +797,11 @@ class HtmlRenderer {
         { xmlns: 'http://www.w3.org/2000/svg', class: 'khw-svg', viewBox: '0 0 1000 300', preserveAspectRatio: 'none', 'aria-hidden': 'true', focusable: 'false' },
         [el('path', { d })],
       );
+      if (node.under) {
+        const bottom = Math.max(LINE_DESCENT, body.d);
+        const below = el('span', { class: 'khw-under khw-mark', style: `margin-top:${fmt(body.d + 0.08 - bottom)}em` }, [el('span', { class: 'khw-wide' }, [svg])]);
+        return this.stack('khw-accent', baseBox, null, { node: below, height: 0.35 });
+      }
       const caption = el('span', { class: 'khw-over khw-mark', style: `margin-bottom:${fmt(Math.max(body.h, X_HEIGHT) + 0.05 - top)}em` }, [
         el('span', { class: 'khw-wide' }, [svg]),
       ]);
@@ -924,6 +932,30 @@ class HtmlRenderer {
     const body = this.content(node.body, ctx);
     if (node.notation === 'box') {
       return { node: el('span', { class: 'khw-boxed' }, body.nodes), h: Math.max(LINE_ASCENT, body.h) + 0.3, d: Math.max(LINE_DESCENT, body.d) + 0.3, cls: null };
+    }
+    switch (node.notation) {
+      case 'fill': {
+        const style = `background-color:${node.color ?? 'transparent'}` + (node.border ? `;border:max(1px, 0.05em) solid ${node.border}` : '');
+        return { node: el('span', { class: 'khw-fill', style }, body.nodes), h: Math.max(LINE_ASCENT, body.h) + 0.15, d: Math.max(LINE_DESCENT, body.d) + 0.15, cls: null };
+      }
+      case 'longdiv':
+        return { node: el('span', { class: 'khw-longdiv' }, body.nodes), h: Math.max(LINE_ASCENT, body.h) + 0.15, d: body.d, cls: null };
+      case 'clap':
+      case 'llap':
+      case 'rlap':
+        return { node: el('span', { class: `khw-lap khw-${node.notation}` }, [el('span', {}, body.nodes)]), h: body.h, d: body.d, cls: null };
+      case 'raise': {
+        const shift = node.shift ?? 0;
+        return { node: el('span', { class: 'khw-raise', style: `vertical-align:${fmt(shift)}em` }, body.nodes), h: body.h + shift, d: Math.max(0, body.d - shift), cls: null };
+      }
+      case 'rule': {
+        const height = node.height ?? 0;
+        const shift = node.shift ?? 0;
+        return {
+          node: el('span', { class: 'khw-rule', style: `width:${fmt(node.width ?? 0)}em;height:${fmt(height)}em;vertical-align:${fmt(shift)}em` }),
+          h: height + shift, d: Math.max(0, -shift), cls: null,
+        };
+      }
     }
     return { node: el('span', { class: `khw-${node.notation}` }, body.nodes), h: body.h, d: body.d, cls: null };
   }

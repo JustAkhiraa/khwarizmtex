@@ -25,7 +25,7 @@ export interface MacroDefinition {
 export type MacroSource = string;
 
 const MAX_STACK = 200_000;
-const DEFINERS = new Set(['\\newcommand', '\\renewcommand', '\\providecommand', '\\def', '\\gdef']);
+const DEFINERS = new Set(['\\newcommand', '\\renewcommand', '\\providecommand', '\\def', '\\gdef', '\\DeclareMathOperator']);
 
 /** Nombre de paramètres d'un corps de macro : le plus grand #n rencontré. */
 function countParams(body: Token[]): number {
@@ -273,7 +273,8 @@ export class Expander {
 
     // \newcommand{\nom}[n][défaut]{corps}, étoile facultative.
     this.skipSpaces();
-    if (this.peekRaw().kind === 'char' && this.peekRaw().text === '*') this.nextRaw();
+    const starred = this.peekRaw().kind === 'char' && this.peekRaw().text === '*';
+    if (starred) this.nextRaw();
     this.skipSpaces();
     let nameToken = this.nextRaw();
     if (nameToken.kind === 'open') {
@@ -284,6 +285,23 @@ export class Expander {
     }
     if (nameToken.kind !== 'command') return fail(`${cmd.text} attend un nom de commande.`, nameToken.end);
     const name = nameToken.text;
+
+    if (cmd.text === '\\DeclareMathOperator') {
+      const label = this.readArgument();
+      if (!label) return fail(`Nom d'opérateur manquant pour ${name}.`);
+      const at = { start: cmd.start, end: label.end };
+      this.local.set(name, {
+        params: 0,
+        body: [
+          { kind: 'command', text: '\\operatorname', ...at },
+          ...(starred ? [{ kind: 'char' as const, text: '*', ...at }] : []),
+          { kind: 'open', text: '{', ...at },
+          ...label.tokens,
+          { kind: 'close', text: '}', ...at },
+        ],
+      });
+      return null;
+    }
 
     let params = 0;
     let optional: Token[] | undefined;

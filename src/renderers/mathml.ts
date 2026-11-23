@@ -20,6 +20,9 @@ export interface MathMLOptions {
 const ACCENT_CHARS: Record<string, string> = {
   hat: '^',
   arc: '⏜',
+  uarc: '⏝',
+  bracket: '⎴',
+  ubracket: '⎵',
   check: 'ˇ',
   tilde: '~',
   acute: '´',
@@ -40,6 +43,8 @@ const ACCENT_CHARS: Record<string, string> = {
 };
 
 const NOTATIONS: Record<string, string> = {
+  strike: 'horizontalstrike',
+  longdiv: 'longdiv',
   box: 'box',
   cancel: 'updiagonalstrike',
   bcancel: 'downdiagonalstrike',
@@ -223,7 +228,7 @@ function convert(node: MathNode, display: boolean, unary: boolean): VNode {
       return el('mrow', {}, [el('mspace', { width: sp[0] }), inner, el('mspace', { width: sp[1] })]);
     }
     case 'frac': {
-      const frac = el('mfrac', node.bar ? {} : { linethickness: '0' }, [convertArg(node.num, display), convertArg(node.den, display)]);
+      const frac = el('mfrac', node.bar ? (node.align ? { numalign: node.align === 'l' ? 'left' : 'right' } : {}) : { linethickness: '0' }, [convertArg(node.num, display), convertArg(node.den, display)]);
       if (node.left === undefined && node.right === undefined) return frac;
       const children: VNode[] = [];
       const l = fence(node.left ?? '', 'prefix');
@@ -293,6 +298,15 @@ function convert(node: MathNode, display: boolean, unary: boolean): VNode {
     case 'phantom':
       return el('mphantom', {}, [convertArg(node.body, display)]);
     case 'enclose':
+      if (node.notation === 'rule') {
+        return el('mspace', { width: em(node.width ?? 0), height: em(node.height ?? 0), mathbackground: 'currentcolor' });
+      }
+      if (node.notation === 'fill') return el('mstyle', { mathbackground: node.color ?? 'transparent' }, [convertArg(node.body, display)]);
+      if (node.notation === 'raise') return el('mpadded', { voffset: em(node.shift ?? 0) }, [convertArg(node.body, display)]);
+      if (node.notation === 'llap' || node.notation === 'rlap' || node.notation === 'clap') {
+        const lspace = node.notation === 'llap' ? '-1width' : node.notation === 'clap' ? '-0.5width' : '0';
+        return el('mpadded', { width: '0', lspace }, [convertArg(node.body, display)]);
+      }
       return el('menclose', { notation: NOTATIONS[node.notation] ?? 'box' }, [convertArg(node.body, display)]);
     case 'ref':
       return el('mtext', node.resolved ? {} : { mathcolor: 'currentColor' }, [node.text]);

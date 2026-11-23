@@ -879,6 +879,65 @@
   background-image: var(--khw-cancel-up), var(--khw-cancel-down);
 }
 
+.khw .khw-num.khw-al {
+  text-align: left;
+}
+
+.khw .khw-num.khw-ar {
+  text-align: right;
+}
+
+.khw .khw-strike {
+  display: inline-block;
+  line-height: 1;
+  background: linear-gradient(currentColor, currentColor) 0 55% / 100% max(1px, 0.05em) no-repeat;
+}
+
+.khw .khw-fill {
+  display: inline-block;
+  line-height: 1;
+  padding: 0.12em 0.2em;
+}
+
+.khw .khw-longdiv {
+  display: inline-block;
+  line-height: 1;
+  padding: 0.12em 0.1em 0 0.35em;
+  border-top: max(1px, var(--khw-rule-em, 0.05) * 1em) solid;
+  border-left: max(1px, var(--khw-rule-em, 0.05) * 1em) solid;
+  border-top-left-radius: 0 0;
+  border-bottom-left-radius: 0.5em 100%;
+}
+
+.khw .khw-lap {
+  display: inline-flex;
+  width: 0;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+.khw .khw-lap > span {
+  flex: none;
+}
+
+.khw .khw-llap {
+  justify-content: flex-end;
+}
+
+.khw .khw-clap {
+  justify-content: center;
+}
+
+.khw .khw-raise,
+.khw .khw-rule {
+  display: inline-block;
+  line-height: 1;
+}
+
+.khw .khw-rule {
+  background: currentColor;
+}
+
 .khw .khw-phantom {
   visibility: hidden;
 }

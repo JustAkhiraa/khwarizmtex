@@ -68,6 +68,8 @@ export interface FracNode {
   /** Délimiteurs autour de la fraction (\binom). */
   left?: string;
   right?: string;
+  /** Alignement du numérateur (\cfrac[l]). */
+  align?: 'l' | 'r';
 }
 
 /** \sqrt{x} ou \sqrt[n]{x}. */
@@ -193,11 +195,20 @@ export interface PhantomNode {
   body: MathNode;
 }
 
-/** \boxed, \cancel, \bcancel, \xcancel. */
+/** \boxed, \cancel, \sout, \longdiv, \colorbox, \mathclap, \raisebox, \rule. */
 export interface EncloseNode {
   type: 'enclose';
-  notation: 'box' | 'cancel' | 'bcancel' | 'xcancel';
+  notation:
+    | 'box' | 'cancel' | 'bcancel' | 'xcancel' | 'strike' | 'longdiv'
+    | 'fill' | 'clap' | 'llap' | 'rlap' | 'raise' | 'rule';
   body: MathNode;
+  /** Fond (\colorbox) et cadre (\fcolorbox) : couleurs déjà validées. */
+  color?: string;
+  border?: string;
+  /** Dimensions en em, déjà bornées (\rule, \raisebox). */
+  width?: number;
+  height?: number;
+  shift?: number;
 }
 
 /** Une étiquette d'équation (`\label{...}`), sans représentation visuelle. */

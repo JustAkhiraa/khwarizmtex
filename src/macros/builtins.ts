@@ -20,7 +20,6 @@ export const BUILTIN_MACROS: Record<string, string> = {
   // Fractions et coefficients binomiaux à style imposé.
   '\\dfrac': '{\\displaystyle\\frac{#1}{#2}}',
   '\\tfrac': '{\\textstyle\\frac{#1}{#2}}',
-  '\\cfrac': '{\\displaystyle\\frac{#1}{#2}}',
   '\\dbinom': '{\\displaystyle\\binom{#1}{#2}}',
   '\\tbinom': '{\\textstyle\\binom{#1}{#2}}',
 
@@ -81,6 +80,14 @@ export const BUILTIN_MACROS: Record<string, string> = {
   '\\complexes': '\\mathbb{C}',
   '\\qed': '\\quad\\blacksquare',
   '\\QED': '\\quad\\blacksquare',
+
+  '\\sfrac': '{{}^{#1}\\!/\\!_{#2}}',
+  '\\nicefrac': '{{}^{#1}\\!/\\!_{#2}}',
+  '\\idotsint': '\\int\\!\\cdots\\!\\int',
+  '\\varlimsup': '\\mathop{\\overline{\\mathrm{lim}}}',
+  '\\varliminf': '\\mathop{\\underline{\\mathrm{lim}}}',
+  '\\nindep': '\\mathrel{\\perp\\!\\!\\!\\!/\\!\\!\\!\\perp}',
+  '\\hfill': '\\quad',
 
   // Divers.
   '\\degree': '^{\\circ}',

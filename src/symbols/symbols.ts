@@ -107,7 +107,7 @@ define(
    triangleleft ◃ triangleright ▹ lhd ⊲ rhd ⊳ unlhd ⊴ unrhd ⊵ bigcirc ◯
    boxplus ⊞ boxminus ⊟ boxtimes ⊠ boxdot ⊡ dotplus ∔ divideontimes ⋇
    ltimes ⋉ rtimes ⋊ curlyvee ⋎ curlywedge ⋏ circledast ⊛ circledcirc ⊚
-   circleddash ⊝ intercal ⊺ barwedge ⊼ veebar ⊻ doublebarwedge ⩞ Cap ⋒ Cup ⋓`,
+   circleddash ⊝ intercal ⊺ leftthreetimes ⋋ rightthreetimes ⋌ barwedge ⊼ veebar ⊻ doublebarwedge ⩞ Cap ⋒ Cup ⋓`,
 );
 
 define(
@@ -145,7 +145,7 @@ define(
    dashleftarrow ⇠ Lsh ↰ Rsh ↱ leqq ≦ geqq ≧ lneq ⪇ gneq ⪈ lneqq ≨ gneqq ≩
    napprox ≉ doteqdot ≑ Coloneqq ⩴ nvdash ⊬ nvDash ⊭ Vvdash ⊪ nprec ⊀ nsucc ⊁
    preccurlyeq ≼ succcurlyeq ≽ lesseqgtr ⋚ gtreqless ⋛ lessapprox ⪅ gtrapprox ⪆
-   notni ∌ Subset ⋐ Supset ⋑ vartriangle △`,
+   notni ∌ Subset ⋐ Supset ⋑ vartriangle △ curlyeqprec ⋞ curlyeqsucc ⋟ restriction ↾ Perp ⫫`,
 );
 
 define('mo', 'punct', `colon : ldotp . cdotp ⋅`);

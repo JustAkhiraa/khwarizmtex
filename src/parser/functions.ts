@@ -12,15 +12,17 @@ import type {
   ArrayNode,
   AtomClass,
   ColumnAlign,
+  EncloseNode,
   MathNode,
   MathVariant,
   TextFont,
 } from '../ast/nodes';
 import type { Token } from '../lexer/lexer';
-import { negate } from '../symbols/symbols';
+import { lookupDelimiter, negate } from '../symbols/symbols';
 import { columnSpec, defaultColumns, mergeLetters, plainText } from './helpers';
 import type { Parser } from './parser';
 import { parseColor, parseDimension } from './values';
+import { chemistry, scientificNumber, unitSource } from './science';
 import { safeLink } from './links';
 
 export type CommandHandler = (parser: Parser, token: Token) => MathNode | null;
@@ -156,6 +158,12 @@ const ACCENTS: Record<string, Omit<AccentNode, 'type' | 'body'>> = {
   '\\overarc': { accent: 'arc', stretchy: true, under: false },
   '\\wideparen': { accent: 'arc', stretchy: true, under: false },
   '\\overparen': { accent: 'arc', stretchy: true, under: false },
+  '\\underparen': { accent: 'uarc', stretchy: true, under: true },
+  '\\overgroup': { accent: 'arc', stretchy: true, under: false },
+  '\\undergroup': { accent: 'uarc', stretchy: true, under: true },
+  '\\overbracket': { accent: 'bracket', stretchy: true, under: false },
+  '\\underbracket': { accent: 'ubracket', stretchy: true, under: true },
+  '\\utilde': { accent: 'tilde', stretchy: true, under: true },
   '\\overline': { accent: 'overline', stretchy: true, under: false },
   '\\underline': { accent: 'underline', stretchy: true, under: true },
   '\\overrightarrow': { accent: 'rightarrow', stretchy: true, under: false },
@@ -357,6 +365,224 @@ define(['\\href', '\\url'], (p, t) => {
   return { type: 'link', href, body };
 });
 
+// Fractions générales
+
+define(['\\cfrac'], (p, t) => {
+  const align = p.parseRawOptional();
+  const frac: MathNode = { type: 'frac', num: p.parseArg(t), den: p.parseArg(t), bar: true };
+  if (align === 'l' || align === 'r') frac.align = align;
+  return { type: 'style', style: 'display', body: [frac] };
+});
+
+define(['\\genfrac'], (p, t) => {
+  const left = p.parseRawArg()?.text ?? '';
+  const right = p.parseRawArg()?.text ?? '';
+  const rule = p.parseRawArg()?.text ?? '';
+  const style = p.parseRawArg()?.text ?? '';
+  const frac: MathNode = { type: 'frac', num: p.parseArg(t), den: p.parseArg(t), bar: rule === '' || parseDimension(rule) !== 0 };
+  const l = left === '' ? '' : lookupDelimiter(left);
+  const r = right === '' ? '' : lookupDelimiter(right);
+  if (l === undefined || r === undefined) return p.error('Délimiteur inconnu dans \\genfrac.', t.start, t.end);
+  if (l || r) {
+    frac.left = l;
+    frac.right = r;
+  }
+  const named = (['display', 'text', 'script', 'scriptscript'] as const)[Number(style)];
+  return style !== '' && named ? { type: 'style', style: named, body: [frac] } : frac;
+});
+
+define(['\\root'], (p, t) => {
+  const index = p.parseList((x) => x.kind === 'command' && x.text === '\\of');
+  const of = p.peek();
+  if (of.kind !== 'command' || of.text !== '\\of') return p.error('\\root attend \\of, par exemple \\root 3 \\of x.', t.start, t.end);
+  p.next();
+  return { type: 'sqrt', index: { type: 'group', body: index }, body: p.parseArg(t) };
+});
+
+// Barrés, fonds, décalages
+
+define(['\\sout'], (p, t) => ({ type: 'enclose', notation: 'strike', body: p.parseArg(t) }));
+define(['\\longdiv'], (p, t) => ({ type: 'enclose', notation: 'longdiv', body: p.parseArg(t) }));
+define(['\\mathclap', '\\mathllap', '\\mathrlap', '\\clap', '\\llap', '\\rlap'], (p, t) => {
+  const side = t.text.replace('\\math', '').replace('\\', '');
+  return { type: 'enclose', notation: side === 'llap' ? 'llap' : side === 'rlap' ? 'rlap' : 'clap', body: p.parseArg(t) };
+});
+
+/** \cancelto{valeur}{x} : x barré, valeur en exposant. */
+define(['\\cancelto'], (p, t) => {
+  const value = p.parseArg(t);
+  return { type: 'scripts', base: { type: 'enclose', notation: 'cancel', body: p.parseArg(t) }, sup: value };
+});
+
+const ENCLOSE_NAMES: Record<string, EncloseNode['notation']> = {
+  box: 'box',
+  longdiv: 'longdiv',
+  horizontalstrike: 'strike',
+  updiagonalstrike: 'cancel',
+  downdiagonalstrike: 'bcancel',
+};
+define(['\\enclose'], (p, t) => {
+  const raw = p.parseRawArg();
+  const notation = raw && Object.prototype.hasOwnProperty.call(ENCLOSE_NAMES, raw.text) ? ENCLOSE_NAMES[raw.text] : undefined;
+  if (!notation) return p.error(`Notation inconnue pour \\enclose : « ${raw?.text ?? ''} ».`, t.start, raw?.end ?? t.end);
+  return { type: 'enclose', notation, body: p.parseArg(t) };
+});
+
+define(['\\colorbox', '\\fcolorbox'], (p, t) => {
+  const model = p.parseRawOptional() ?? undefined;
+  const border = t.text === '\\fcolorbox' ? parseColor(p.parseRawArg()?.text ?? '', model) : null;
+  const raw = p.parseRawArg();
+  const color = parseColor(raw?.text ?? '', model);
+  const body = p.parseText(t, 'normal');
+  if (!color || (t.text === '\\fcolorbox' && !border)) {
+    return { type: 'group', body: [p.error('Couleur inconnue.', t.start, raw?.end ?? t.end), body] };
+  }
+  const node: EncloseNode = { type: 'enclose', notation: 'fill', color, body };
+  if (border) node.border = border;
+  return node;
+});
+
+/** Dimension entre accolades, bornée par maxSize ; null si illisible. */
+function dimension(p: Parser): number | null {
+  const raw = p.parseDimensionText();
+  const value = raw ? parseDimension(raw.text) : null;
+  const max = p.options.maxSize;
+  return value === null ? null : Math.max(-max, Math.min(max, value));
+}
+
+define(['\\rule'], (p, t) => {
+  const rise = p.parseRawOptional();
+  const width = dimension(p);
+  const height = dimension(p);
+  const shift = rise === null ? 0 : parseDimension(rise);
+  if (width === null || height === null || shift === null) return p.error('Dimension illisible (exemple : \\rule{2em}{0.1em}).', t.start, t.end);
+  const max = p.options.maxSize;
+  return {
+    type: 'enclose', notation: 'rule', body: { type: 'group', body: [] },
+    width: Math.max(0, width), height: Math.max(0, height), shift: Math.max(-max, Math.min(max, shift)),
+  };
+});
+
+define(['\\raisebox'], (p, t) => {
+  const shift = dimension(p);
+  if (shift === null) return p.error('Dimension illisible (exemple : \\raisebox{0.5em}{x}).', t.start, t.end);
+  return { type: 'enclose', notation: 'raise', shift, body: p.parseText(t, 'normal') };
+});
+
+/** \sideset{_a^b}{_c^d}\sum : indices des deux côtés d'un grand opérateur. */
+define(['\\sideset'], (p, t) => {
+  const left = p.parseArg(t);
+  const right = p.parseArg(t);
+  const op = p.parseArg(t);
+  return { type: 'group', body: [left, op, right], cls: 'op' };
+});
+
+// Chimie et unités
+
+define(['\\ce'], (p, t) => {
+  const raw = p.parseRawArg();
+  const source = raw ? chemistry(raw.text) : null;
+  if (source === null) return p.error('Formule chimique non comprise par \\ce.', t.start, raw?.end ?? t.end);
+  return p.parseSource(source, t);
+});
+
+define(['\\num', '\\si', '\\unit', '\\SI', '\\qty', '\\ang'], (p, t) => {
+  const first = p.parseRawArg();
+  const withNumber = t.text !== '\\si' && t.text !== '\\unit';
+  const value = withNumber ? scientificNumber(first?.text ?? '') : '';
+  if (value === null) return p.error(`Nombre illisible après ${t.text}.`, t.start, first?.end ?? t.end);
+  if (t.text === '\\num') return p.parseSource(value, t);
+  if (t.text === '\\ang') return p.parseSource(value + '^{\\circ}', t);
+  const second = withNumber ? p.parseRawArg() : first;
+  const unit = unitSource(second?.text ?? '');
+  if (unit === null) return p.error(`Unité illisible après ${t.text}.`, t.start, second?.end ?? t.end);
+  return p.parseSource(withNumber ? value + '\\,' + unit : unit, t);
+});
+
+// Diagrammes commutatifs
+
+/** \begin{CD} A @>f>> B \\ @VVgV @VVhV \\ C @>>k> D \end{CD} */
+function parseDiagram(p: Parser, t: Token): MathNode {
+  const isChar = (x: Token, text: string): boolean => x.kind === 'char' && x.text === text;
+  const isCmd = (x: Token, text: string): boolean => x.kind === 'command' && x.text === text;
+  const halt = (x: Token): boolean => isCmd(x, '\\\\') || isCmd(x, '\\end') || isChar(x, '@');
+  const rows: MathNode[][][] = [[[]]];
+  const symbol = (text: string): MathNode => ({ type: 'symbol', role: 'mo', cls: 'ord', text });
+  const small = (body: MathNode[]): MathNode => ({ type: 'style', style: 'script', body });
+  let vertical = 0;
+  p.enter(t);
+  for (;;) {
+    const row = rows[rows.length - 1] as MathNode[][];
+    const cell = p.parseList(halt);
+    if (cell.length) row[row.length - 1]?.push(...cell);
+    const x = p.next();
+    if (isCmd(x, '\\\\')) {
+      rows.push([[]]);
+      vertical = 0;
+    } else if (isChar(x, '@')) {
+      const kind = p.next();
+      const c = kind.kind === 'char' ? kind.text : '';
+      const labels: MathNode[][] = [];
+      if ('><VA'.includes(c) && c !== '') {
+        for (let i = 0; i < 2; i++) {
+          labels.push(p.parseList((y) => isChar(y, c) || isCmd(y, '\\\\') || isCmd(y, '\\end')));
+          if (!isChar(p.peek(), c)) {
+            p.leave();
+            return p.error('Flèche incomplète dans le diagramme CD.', kind.start, kind.end);
+          }
+          p.next();
+        }
+      }
+      if (c === '>' || c === '<' || c === '=') {
+        const arrow: MathNode =
+          c === '='
+            ? symbol('=')
+            : {
+                type: 'underover',
+                cls: 'rel',
+                base: { type: 'symbol', role: 'mo', cls: 'rel', text: c === '>' ? '→' : '←', stretchy: true },
+                over: { type: 'group', body: [{ type: 'space', width: 0.8 }, ...(labels[0] ?? []), { type: 'space', width: 0.8 }] },
+                ...(labels[1]?.length ? { under: { type: 'group', body: labels[1] } as MathNode } : {}),
+              };
+        row.push([arrow], []);
+      } else if (c === 'V' || c === 'A' || c === '|' || c === '.') {
+        while (row.length < vertical * 2 + 1) row.push([]);
+        const left = labels[0] ?? [];
+        const right = labels[1] ?? [];
+        // Les deux étiquettes pèsent zéro : la flèche reste au milieu de sa colonne.
+        if (c !== '.') {
+          row[vertical * 2] = [
+            { type: 'enclose', notation: 'llap', body: { type: 'group', body: [small(left), { type: 'space', width: 0.15 }] } },
+            { type: 'delim', delim: c === 'V' ? '↓' : c === 'A' ? '↑' : '‖', size: 2, cls: 'ord' },
+            { type: 'enclose', notation: 'rlap', body: { type: 'group', body: [{ type: 'space', width: 0.15 }, small(right)] } },
+          ];
+        }
+        vertical++;
+      } else {
+        p.leave();
+        return p.error('Flèche inconnue dans le diagramme CD.', x.start, kind.end);
+      }
+    } else if (isCmd(x, '\\end')) {
+      const name = p.parseRawArg();
+      p.leave();
+      if (name?.text !== 'CD') return p.error('\\begin{CD} sans \\end{CD}.', t.start, name?.end ?? t.end);
+      break;
+    } else {
+      p.leave();
+      return p.error('\\begin{CD} sans \\end{CD}.', t.start, t.end);
+    }
+  }
+  const last = rows[rows.length - 1];
+  if (rows.length > 1 && last?.every((cell) => cell.length === 0)) rows.pop();
+  const columns = rows.reduce((m, r) => Math.max(m, r.length), 1);
+  return {
+    type: 'array', kind: 'matrix', rows,
+    cols: Array.from({ length: columns }, () => 'c' as const),
+    colLines: Array.from({ length: columns + 1 }, () => false),
+    rowLines: Array.from({ length: rows.length + 1 }, () => false),
+  };
+}
+
 // Environnements
 
 interface EnvironmentSpec {
@@ -408,7 +634,10 @@ export type { EnvironmentSpec };
 define(['\\begin'], (p, t) => {
   const raw = p.parseRawArg();
   const name = raw?.text ?? '';
-  const spec = ENVIRONMENTS[name];
+  if (name === 'CD') return parseDiagram(p, t);
+  // pmatrix*, bmatrix*… : même matrice, avec un alignement de colonnes facultatif.
+  const starred = /^[pbBvV]?matrix\*$/.test(name);
+  const spec = ENVIRONMENTS[starred ? name.slice(0, -1) : name];
   const errors: MathNode[] = [];
   if (!spec) {
     errors.push(p.error(`Environnement inconnu : ${name || '(sans nom)'}.`, t.start, raw?.end ?? t.end));
@@ -422,6 +651,10 @@ define(['\\begin'], (p, t) => {
     const parsed = columnSpec(colsRaw?.text ?? '');
     cols = parsed.cols;
     colLines = parsed.lines;
+  }
+  if (starred) {
+    const align = columnSpec(p.parseRawOptional() ?? 'c').cols[0];
+    if (align) cols = [align];
   }
   if (name === 'alignat' || name === 'alignat*' || name === 'alignedat') p.parseRawArg();
 
