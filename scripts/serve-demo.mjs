@@ -30,6 +30,8 @@ const onlineFiles = [
   "imports.js",
   "recents.js",
   "slots.js",
+  "molecule.js",
+  "molecule-model.js",
   "preview-edit.js",
 ];
 for (const name of onlineFiles) {

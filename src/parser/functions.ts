@@ -23,6 +23,7 @@ import { columnSpec, defaultColumns, mergeLetters, plainText, rowWidth } from '.
 import type { Parser } from './parser';
 import { parseColor, parseDimension } from './values';
 import { chemistry, scientificNumber, unitSource } from './science';
+import { parseMolecule } from './molecule';
 import { safeLink } from './links';
 
 export type CommandHandler = (parser: Parser, token: Token) => MathNode | null;
@@ -83,8 +84,8 @@ const FONTS: Record<string, MathVariant> = {
 
 define(Object.keys(FONTS), (p, t) => {
   const arg = p.withFont(FONTS[t.text] ?? null, () => p.parseArg(t));
-  if (arg.type === 'group') return { type: 'group', body: mergeLetters(arg.body) };
-  return arg;
+  if (arg.type === 'group') return { type: 'group', body: mergeLetters(arg.body), fontMark: true };
+  return arg.type === 'symbol' ? { ...arg, fontMark: true } : arg;
 });
 
 define(['\\mathnormal'], (p, t) => p.withFont(null, () => p.parseArg(t)));
@@ -501,6 +502,12 @@ define(['\\multicolumn'], (p, t) => {
 });
 
 // Chimie et unités
+
+define(['\\molecule'], (p, t) => {
+  const raw = p.parseRawArg();
+  const molecule = parseMolecule(raw?.text ?? '');
+  return typeof molecule === 'string' ? p.error(`\\molecule : ${molecule}.`, t.start, raw?.end ?? t.end) : molecule;
+});
 
 define(['\\ce'], (p, t) => {
   const raw = p.parseRawArg();

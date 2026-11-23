@@ -31,6 +31,7 @@ const DOM_PARTS = {
     selector: ".khw-stack:has(> .khw-base > .khw-xarrow)",
     find: (box, part) => child(box, part.role === "under" ? ".khw-under" : ".khw-over"),
   },
+  font: { selector: ".khw-font", find: (box) => box },
   boxed: { selector: ".khw-boxed", find: (box) => box },
   cell: {
     selector: ".khw-mtable",
@@ -48,6 +49,7 @@ const KIND_NAMES = {
   cell: " du tableau ",
   fenced: " des parenthèses ",
   boxed: " du cadre ",
+  font: " de la police ",
   strike: " barré ",
   brace: " de l’accolade ",
   arrow: " de la flèche ",
@@ -71,6 +73,7 @@ export function bindPreviewEditor({
   getMode,
   apply,
   renderProbe,
+  locate,
   notify,
   launcher,
   flush,
@@ -115,7 +118,7 @@ export function bindPreviewEditor({
       const ofKind = slots.filter((slot) => slot.kind === kind);
       const elements = [...preview.querySelectorAll(".khw-html " + spec.selector)];
       // Une macro, \over ou une erreur change le nombre : rien n'est relié.
-      if (ofKind.length !== elements.length || ofKind.length > 200) continue;
+      if (ofKind.length !== elements.length || ofKind.length > 800) continue;
       ofKind.forEach((slot, rank) => {
         const box = elements[rank];
         for (const part of slot.parts) {
@@ -125,7 +128,13 @@ export function bindPreviewEditor({
           const text = src.slice(part.start, part.end);
           // Le rendu de la portion doit correspondre à ce qui est affiché.
           // Un texte s'affiche tel quel ; le reste passe par le moteur.
-          const expected = kind === "text" && !/[\\$]/.test(text) ? squash(text) : renderedText(text);
+          const expected =
+            kind === "text" && !/[\\$]/.test(text)
+              ? squash(text)
+              : renderedText(
+                  // Une police change les caractères : on compare la commande entière.
+                  kind === "font" ? src.slice(slot.at, part.end + (part.bare ? 0 : 1)) : text,
+                );
           if (expected !== squash(el.textContent)) continue;
           const key =
             kind + ":" + rank + ":" + part.role + (part.role === "cell" ? ":" + part.row + "-" + part.col : "");
@@ -189,15 +198,28 @@ export function bindPreviewEditor({
    * S'il n'apparaît pas dans la zone cliquée, le lien est faux et on refuse.
    */
   const WITNESS = "⟐";
+  const FORMULAS = ".equation-block, .inline-math";
+  function formulaIndex(el) {
+    return [...preview.querySelectorAll(FORMULAS)].indexOf(el.closest(FORMULAS));
+  }
   function proven(zone) {
     const [kind, rank] = zone.key.split(":");
-    const src = source.value;
     try {
-      const box = renderProbe(
-        src.slice(0, zone.part.start) + partText(zone.part, WITNESS) + src.slice(zone.part.end),
-      );
+      // Seule la formule concernée est refaite : un long document reste fluide.
+      const formula = locate(zone.part.start);
+      if (!formula || (formula.index >= 0 && formulaIndex(zone.el) !== formula.index)) return false;
+      const at = zone.part.start - formula.start;
+      const text = formula.text;
+      const changed =
+        text.slice(0, at) + partText(zone.part, WITNESS) + text.slice(zone.part.end - formula.start);
+      const box = document.createElement("div");
+      const before = [...preview.querySelectorAll(".khw-html " + DOM_PARTS[kind].selector)];
+      const root = formula.index >= 0 ? zone.el.closest(FORMULAS) : preview;
+      const local = before.filter((el) => root.contains(el)).indexOf(before[Number(rank)]);
+      if (local < 0) return false;
+      renderProbe(changed, formula.display, box);
       const spec = DOM_PARTS[kind];
-      const element = box.querySelectorAll(".khw-html " + spec.selector)[Number(rank)];
+      const element = box.querySelectorAll(".khw-html " + spec.selector)[local];
       const el = element && spec.find(element, zone.part);
       return Boolean(el) && squash(el.textContent) === WITNESS;
     } catch {

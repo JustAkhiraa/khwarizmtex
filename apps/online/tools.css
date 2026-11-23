@@ -646,3 +646,104 @@
 .preview-foot:has(#complete-badge:not([hidden])) #render-status {
   display: none;
 }
+
+/* Dessin de molécule */
+#molecule-dialog {
+  width: min(760px, calc(100vw - 24px));
+}
+.molecule-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.molecule-tools button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+}
+.molecule-tools button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--tint);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.molecule-stage {
+  position: relative;
+  margin: 12px 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  overflow: hidden;
+}
+#molecule-board {
+  display: block;
+  width: 100%;
+  height: min(320px, 40vh);
+  touch-action: none;
+  cursor: crosshair;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+#molecule-board .khw-mol-solid,
+#molecule-board .khw-mol-text,
+#molecule-board .khw-mol-small {
+  fill: currentColor;
+  stroke: none;
+  font: 24px "KhwarizmTeX Text", serif;
+}
+#molecule-board .khw-mol-small {
+  font-size: 17px;
+}
+.molecule-dot {
+  fill: transparent;
+  stroke: transparent;
+}
+.molecule-dot:hover {
+  fill: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.molecule-preview {
+  stroke: var(--accent);
+  stroke-dasharray: 4 5;
+}
+#molecule-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 16px;
+  color: var(--muted);
+  text-align: center;
+  pointer-events: none;
+}
+#molecule-empty[hidden] {
+  display: none;
+}
+#molecule-source {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px ui-monospace, Menlo, Consolas, monospace;
+}
+#molecule-template {
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+}
+#molecule-bonds button,
+#molecule-tools button[data-kind="ring"] {
+  font-size: 22px;
+}

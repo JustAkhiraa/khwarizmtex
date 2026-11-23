@@ -8,9 +8,10 @@ import {
   decodeFormula,
   initialState,
 } from "./model.js";
-import { renderDocument } from "./document.js";
+import { inlineParts, parseDocument, renderDocument } from "./document.js";
 import { bindEditor } from "./editor.js";
 import { bindTools } from "./tools.js";
+import { bindMolecule } from "./molecule.js";
 import { bindPreviewEditor } from "./preview-edit.js";
 import { bindImports } from "./imports.js";
 import { download, filename, copyText, mathml } from "./exports.js";
@@ -251,6 +252,7 @@ const editor = bindEditor(
   () => state.mode,
 );
 bindTools(editor, source, engine, notify, edit);
+bindMolecule(editor, source, engine, notify);
 // Une frappe dans l'aperçu passe par le même chemin qu'une frappe à gauche :
 // même historique (regroupé), même sauvegarde, rendu immédiat.
 previewEditor = bindPreviewEditor({
@@ -263,17 +265,33 @@ previewEditor = bindPreviewEditor({
   launcher: $("preview-edit"),
   flush: () => render(),
   pending: () => renderPending,
-  renderProbe(text) {
-    const box = document.createElement("div");
-    if (state.mode === "document") renderDocument(text, title.value, box, engine);
-    else
-      engine.renderToElement(text, box, {
-        displayMode: true,
-        maxLength: 50000,
-        maxDepth: 64,
-        maxExpand: 500,
-      });
-    return box;
+  // Formule qui contient cette position : la source entière, ou une formule du document.
+  locate(position) {
+    if (state.mode === "formula")
+      return { text: source.value, start: 0, display: true, index: -1 };
+    let index = -1;
+    for (const block of parseDocument(source.value).blocks) {
+      const formulas =
+        block.type === "math"
+          ? [{ text: block.text, start: block.start, display: true }]
+          : inlineParts(block.text)
+              .filter((part) => part.type === "math")
+              .map((part) => ({ text: part.text, start: block.start + part.start, display: false }));
+      for (const formula of formulas) {
+        index++;
+        if (position >= formula.start && position <= formula.start + formula.text.length)
+          return { ...formula, index };
+      }
+    }
+    return null;
+  },
+  renderProbe(text, display, box) {
+    engine.renderToElement(text, box, {
+      displayMode: display,
+      maxLength: 50000,
+      maxDepth: 64,
+      maxExpand: 500,
+    });
   },
   apply(start, end, text) {
     if (source.value.length - (end - start) + text.length > 50000) {

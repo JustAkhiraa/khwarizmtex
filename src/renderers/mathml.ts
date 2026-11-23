@@ -6,6 +6,7 @@
  * Les variantes de police passent par les alphabets mathématiques Unicode,
  * comme le recommande la norme du balisage natif.
  */
+import { molecularFormula } from '../parser/molecule';
 import { cellSpan, rowWidth } from '../parser/helpers';
 import { atomClass, reclassify } from '../ast/classes';
 import type { ArrayNode, MathNode, OpNode, MathStyle, MathVariant, ScriptsNode, SymbolNode } from '../ast/nodes';
@@ -320,6 +321,8 @@ function convert(node: MathNode, display: boolean, unary: boolean): VNode {
       return el('mstyle', { mathcolor: node.color }, [row(list(node.body, display))]);
     case 'phantom':
       return el('mphantom', {}, [convertArg(node.body, display)]);
+    case 'molecule':
+      return el('mtext', {}, [molecularFormula(node)]);
     case 'enclose':
       if (node.notation === 'rule') {
         return el('mspace', { width: em(node.width ?? 0), height: em(node.height ?? 0), mathbackground: 'currentcolor' });

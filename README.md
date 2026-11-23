@@ -12,7 +12,7 @@ Synchrone, sans dépendance à l'exécution, utilisable côté serveur comme dan
 
 `npm run online` lance l’atelier sur `http://127.0.0.1:4173/online/` : modes
 Formule et Document, interface ordinateur/téléphone, sauvegarde locale,
-autocomplétion, palette de 377 choix, matrices personnalisées, partage et exports.
+autocomplétion, palette de 379 choix, matrices personnalisées, partage et exports.
 Le bouton **Importer** ouvre les fichiers Markdown, texte, formules `.tex`,
 sauvegardes JSON et PDF. Les PDF fournissent du texte extrait, sans OCR ni
 reconstruction automatique des équations en source. Le mode Document

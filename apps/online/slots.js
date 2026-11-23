@@ -6,6 +6,7 @@ const FRACTIONS = new Set(["frac", "dfrac", "tfrac", "cfrac", "binom", "dbinom",
 const ACCENTS = new Set(
   "vec hat widehat bar overline underline tilde widetilde dot ddot acute grave breve check overrightarrow overleftarrow overleftrightarrow overarc".split(" "),
 );
+const FONTS = new Set("mathrm mathup mathit mathbf boldsymbol bm pmb mathbb mathds mathcal mathscr mathfrak mathsf mathtt mathbfit".split(" "));
 const STRIKES = new Set("cancel bcancel xcancel cancelto sout longdiv".split(" "));
 const TEXTS = new Set("text textbf textit textrm textsf texttt textnormal mbox".split(" "));
 const TABLES = new Set(
@@ -18,10 +19,18 @@ function delimiterEnd(src, i) {
   const cmd = /^\\(?:[a-zA-Z]+|.)/.exec(src.slice(i, i + 20));
   return i + (cmd ? cmd[0].length : 1);
 }
-/** Contenu entre \\left… et le \\right qui lui répond ; refusé s'il y a un \\middle. */
+/** Contenu entre \left… et le \right qui lui répond, coupé à chaque \middle. */
 function leftRight(src, bodyStart) {
+  const segments = [];
   let depth = 0;
-  let middle = false;
+  let from = bodyStart;
+  const push = (to) => {
+    let a = from;
+    let b = to;
+    while (a < b && /\s/.test(src[a])) a++;
+    while (b > a && /\s/.test(src[b - 1])) b--;
+    segments.push({ start: a, end: b });
+  };
   for (let i = bodyStart; i < src.length; i++) {
     if (src[i] !== "\\") continue;
     const name = /^\\([a-zA-Z]+)/.exec(src.slice(i, i + 10))?.[1];
@@ -30,14 +39,13 @@ function leftRight(src, bodyStart) {
       continue;
     }
     if (name === "left") depth++;
-    else if (name === "middle" && depth === 0) middle = true;
-    else if (name === "right") {
+    else if (name === "middle" && depth === 0) {
+      push(i);
+      from = delimiterEnd(src, i + 1 + name.length);
+    } else if (name === "right") {
       if (depth === 0) {
-        let a = bodyStart;
-        let b = i;
-        while (a < b && /\s/.test(src[a])) a++;
-        while (b > a && /\s/.test(src[b - 1])) b--;
-        return middle ? { start: -1, end: -1 } : { start: a, end: b };
+        push(i);
+        return segments;
       }
       depth--;
     }
@@ -200,7 +208,11 @@ export function findSlots(src, { comments = true } = {}) {
         });
     } else if (name === "left") {
       const body = leftRight(src, delimiterEnd(src, after));
-      if (body) slots.push({ kind: "fenced", at: i, parts: [{ role: "fenced", ...body }] });
+      for (const [k, segment] of (body || []).entries())
+        slots.push({ kind: "fenced", at: k ? segment.start : i, parts: [{ role: "fenced", ...segment }] });
+    } else if (FONTS.has(name)) {
+      const arg = argument(src, after);
+      if (arg) slots.push({ kind: "font", at: i, parts: [{ role: "base", start: arg.start, end: arg.end, bare: arg.bare }] });
     } else if (STRIKES.has(name)) {
       let j = after;
       if (name === "cancelto") j = argument(src, after)?.next ?? after;
@@ -245,7 +257,7 @@ export function findSlots(src, { comments = true } = {}) {
     }
     i = after - 1;
   }
-  return slots;
+  return slots.sort((a, b) => a.at - b.at);
 }
 
 /** Remplace le contenu d'une partie ; une partie vidée redevient un emplacement □. */

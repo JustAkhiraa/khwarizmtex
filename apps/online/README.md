@@ -29,7 +29,7 @@ et l'import validé demande confirmation avant remplacement.
 
 ## Palette et présentation
 
-**Tous les symboles** ouvre 377 modèles recherchables dans 15 catégories :
+**Tous les symboles** ouvre 379 modèles recherchables dans 15 catégories :
 structures, grec, relations, ensembles/logique, flèches, fonctions, opérateurs,
 accents/vecteurs, délimiteurs, styles, probabilités/statistiques, analyse,
 algèbre/géométrie, physique et chimie.

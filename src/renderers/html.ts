@@ -11,6 +11,7 @@
  * - au premier niveau, la formule est découpée après les relations et les
  *   opérateurs : le navigateur peut y passer à la ligne sur un petit écran.
  */
+import { drawMolecule } from './molecule';
 import { cellSpan, rowWidth } from '../parser/helpers';
 import { atomClass, reclassify, spaceBetween } from '../ast/classes';
 import type {
@@ -294,8 +295,11 @@ class HtmlRenderer {
       case 'group': {
         const boxes = this.list(node.body, ctx);
         const only = boxes[0];
-        if (boxes.length === 1 && only && !only.newline) return only;
-        return this.row(boxes, 'khw-mrow');
+        if (boxes.length === 1 && only && !only.newline) {
+          if (node.fontMark) addClass(only.node, 'khw-font');
+          return only;
+        }
+        return this.row(boxes, cls('khw-mrow', node.fontMark && 'khw-font'));
       }
       case 'frac':
         return this.frac(node, ctx);
@@ -333,6 +337,11 @@ class HtmlRenderer {
       case 'phantom': {
         const c = this.content(node.body, ctx);
         return { node: el('span', { class: 'khw-phantom' }, c.nodes), h: c.h, d: c.d, cls: null };
+      }
+      case 'molecule': {
+        const drawn = drawMolecule(node);
+        setStyle(drawn.node, 'vertical-align:middle');
+        return { node: drawn.node, h: drawn.height / 2 + AXIS, d: drawn.height / 2 - AXIS, cls: null };
       }
       case 'enclose':
         return this.enclose(node, ctx);
@@ -388,6 +397,7 @@ class HtmlRenderer {
     let text = node.text;
     const classes: string[] = [];
     let italic = false;
+    if (node.fontMark) classes.push('khw-font');
     let tag = 'span';
     if (node.role === 'mo') {
       classes.push('khw-mo');

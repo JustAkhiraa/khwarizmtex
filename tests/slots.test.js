@@ -68,11 +68,12 @@ describe("tableaux, parenthèses, accents et texte", () => {
     expect(cell.parts.map((p) => src.slice(p.start, p.end))).toEqual(["a", "\\frac{1}{2}", "c", ""]);
     expect(replacePart(src, cell.parts[3], "d")).toContain("c & d");
   });
-  it("relie \\left…\\right, mais pas avec \\middle", () => {
+  it("relie \\left…\\right, y compris avec \\middle", () => {
     const src = "\\left( a+b \\right)";
     const [f] = findSlots(src);
     expect(src.slice(f.parts[0].start, f.parts[0].end)).toBe("a+b");
-    expect(findSlots("\\left( a \\middle| b \\right)")[0].parts[0].start).toBe(-1);
+    const cut = "\\left( a \\middle| \\left[c\\right] \\right)";
+    expect(findSlots(cut).map((x) => cut.slice(x.parts[0].start, x.parts[0].end))).toEqual(["a", "\\left[c\\right]", "c"]);
   });
   it("relie accents et texte", () => {
     const src = "\\vec{u}+\\text{si }";

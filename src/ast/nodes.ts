@@ -48,6 +48,8 @@ export interface SymbolNode {
   variant?: MathVariant;
   /** Flèche extensible (\xrightarrow) : s'étire à la largeur de ses étiquettes. */
   stretchy?: boolean;
+  /** Produit par une commande de police : repère neutre pour les outils. */
+  fontMark?: boolean;
   loc?: Loc;
 }
 
@@ -56,6 +58,8 @@ export interface GroupNode {
   type: 'group';
   body: MathNode[];
   cls?: AtomClass;
+  /** Produit par une commande de police : repère neutre pour les outils. */
+  fontMark?: boolean;
   /** \multicolumn : colonnes couvertes, quand le groupe est seul dans sa cellule. */
   span?: { columns: number; align: ColumnAlign; left: boolean; right: boolean };
 }
@@ -203,6 +207,13 @@ export interface PhantomNode {
   body: MathNode;
 }
 
+/** \molecule : atomes placés et liaisons, déjà validés. */
+export interface MoleculeNode {
+  type: 'molecule';
+  atoms: { element: string; charge: number; x: number; y: number; hydrogens: number; degree: number }[];
+  bonds: { from: number; to: number; order: number; wedge: 'up' | 'down' | null }[];
+}
+
 /** \boxed, \cancel, \sout, \longdiv, \colorbox, \mathclap, \raisebox, \rule. */
 export interface EncloseNode {
   type: 'enclose';
@@ -289,6 +300,7 @@ export type MathNode =
   | ColorNode
   | PhantomNode
   | EncloseNode
+  | MoleculeNode
   | LabelNode
   | ReferenceNode
   | TagNode

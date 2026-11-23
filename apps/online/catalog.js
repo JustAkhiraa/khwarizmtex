@@ -409,6 +409,8 @@ export const CATEGORIES = [
       ],
       ["Équation chimique", "\\ce{2H2 + O2 -> 2H2O}", "réaction"],
       ["Ion en notation rapide", "\\ce{SO4^2-}", "chimie"],
+      ["Benzène dessiné", "\\molecule{C 0 -1, C 0.87 -0.5, C 0.87 0.5, C 0 1, C -0.87 0.5, C -0.87 -0.5 | 1=2, 2-3, 3=4, 4-5, 5=6, 6-1}", "molécule structure cycle"],
+      ["Éthanol dessiné", "\\molecule{C 0 0, C 0.87 -0.5, O 1.73 0 | 1-2, 2-3}", "molécule structure alcool"],
       ["Concentration molaire", "c=\\frac{n}{V}"],
       ["Quantité de matière", "n=\\frac{m}{M}"],
       [

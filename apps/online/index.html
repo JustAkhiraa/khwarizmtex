@@ -185,6 +185,7 @@
                   Tous les symboles
                 </button>
                 <button type="button" id="matrix-open">Matrices</button>
+                <button type="button" id="molecule-open">Molécules</button>
                 <button type="button" id="appearance-open">Présentation</button>
                 <details class="more-menu" id="more-menu">
                   <summary>Plus</summary>
@@ -540,6 +541,57 @@
         ><button id="matrix-insert" class="button primary" type="button">
           Insérer la matrice
         </button>
+      </div>
+    </dialog>
+    <dialog id="molecule-dialog" aria-labelledby="molecule-title">
+      <div class="dialog-head">
+        <h2 id="molecule-title">Dessiner une molécule</h2>
+        <button type="button" class="icon-button" data-close aria-label="Fermer le dessin">×</button>
+      </div>
+      <div class="molecule-tools" id="molecule-tools" role="group" aria-label="Atomes et outils">
+          <button type="button" data-kind="atom" data-value="C" aria-pressed="true" aria-label="Carbone" title="Carbone">C</button>
+          <button type="button" data-kind="atom" data-value="H" aria-pressed="false" aria-label="Hydrogène" title="Hydrogène">H</button>
+          <button type="button" data-kind="atom" data-value="O" aria-pressed="false" aria-label="Oxygène" title="Oxygène">O</button>
+          <button type="button" data-kind="atom" data-value="N" aria-pressed="false" aria-label="Azote" title="Azote">N</button>
+          <button type="button" data-kind="atom" data-value="S" aria-pressed="false" aria-label="Soufre" title="Soufre">S</button>
+          <button type="button" data-kind="atom" data-value="P" aria-pressed="false" aria-label="Phosphore" title="Phosphore">P</button>
+          <button type="button" data-kind="atom" data-value="F" aria-pressed="false" aria-label="Fluor" title="Fluor">F</button>
+          <button type="button" data-kind="atom" data-value="Cl" aria-pressed="false" aria-label="Chlore" title="Chlore">Cl</button>
+          <button type="button" data-kind="atom" data-value="Br" aria-pressed="false" aria-label="Brome" title="Brome">Br</button>
+          <button type="button" data-kind="atom" data-value="I" aria-pressed="false" aria-label="Iode" title="Iode">I</button>
+          <button type="button" data-kind="charge" data-value="+" aria-pressed="false" aria-label="Charge positive" title="Charge positive">+</button>
+          <button type="button" data-kind="charge" data-value="-" aria-pressed="false" aria-label="Charge négative" title="Charge négative">−</button>
+          <button type="button" data-kind="ring" data-value="" data-size="6" aria-pressed="false" aria-label="Cycle à six" title="Cycle à six">⬡</button>
+          <button type="button" data-kind="ring" data-value="" data-size="6" data-alternate="1" aria-pressed="false" aria-label="Cycle benzénique" title="Cycle benzénique">⌬</button>
+          <button type="button" data-kind="ring" data-value="" data-size="5" aria-pressed="false" aria-label="Cycle à cinq" title="Cycle à cinq">⬠</button>
+          <button type="button" data-kind="erase" data-value="" aria-pressed="false" aria-label="Effacer un atome ou une liaison" title="Effacer un atome ou une liaison">Gomme</button>
+      </div>
+      <div class="molecule-tools" id="molecule-bonds" role="group" aria-label="Type de liaison">
+          <button type="button" data-mark="-" aria-pressed="true" title="Liaison simple" aria-label="Liaison simple">–</button>
+          <button type="button" data-mark="=" aria-pressed="false" title="Liaison double" aria-label="Liaison double">=</button>
+          <button type="button" data-mark="#" aria-pressed="false" title="Liaison triple" aria-label="Liaison triple">≡</button>
+          <button type="button" data-mark="&gt;" aria-pressed="false" title="Coin plein, vers l’avant" aria-label="Coin plein, vers l’avant">◀</button>
+          <button type="button" data-mark="&lt;" aria-pressed="false" title="Coin hachuré, vers l’arrière" aria-label="Coin hachuré, vers l’arrière">┅</button>
+      </div>
+      <div class="molecule-stage">
+        <svg id="molecule-board" role="img" aria-label="Zone de dessin. La description ci-dessous permet de tout faire au clavier."></svg>
+        <p id="molecule-empty">Touchez pour poser un atome, puis tirez pour ajouter une liaison.</p>
+      </div>
+      <label class="tool-setting" for="molecule-source"
+        >Description (modifiable au clavier)<input id="molecule-source" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="\molecule{C 0 0, O 1 0 | 1-2}"
+      /></label>
+      <p id="molecule-error" role="alert"></p>
+      <div class="dialog-actions">
+        <select id="molecule-template" aria-label="Partir d’un modèle">
+          <option value="">Modèles</option>
+          <option value="benzene">Benzène</option>
+          <option value="ethanol">Éthanol</option>
+          <option value="acetic">Acide éthanoïque</option>
+          <option value="water">Eau</option>
+        </select>
+        <button type="button" class="button" id="molecule-undo">Annuler</button>
+        <button type="button" class="button" id="molecule-clear">Tout effacer</button>
+        <button type="button" class="button primary" id="molecule-insert">Insérer la molécule</button>
       </div>
     </dialog>
     <dialog id="appearance-dialog" aria-labelledby="appearance-title">

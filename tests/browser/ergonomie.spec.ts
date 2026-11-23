@@ -104,6 +104,8 @@ test("réussite : remplir le dernier □ affiche « Formule complète »", async
 
 test("aperçu : l'exposant x^2 devient x^{10}", async ({ page }) => {
   await page.fill("#source", "x^2");
+  // Le rendu suit la frappe de 100 ms : on vise la nouvelle formule, pas l'ancienne.
+  await expect(page.locator("#preview [data-slot]")).toHaveCount(1);
   await page.locator('#preview [data-slot="sup:0:sup"]').click();
   await page.keyboard.press("ControlOrMeta+a");
   await page.keyboard.type("10");
@@ -160,4 +162,70 @@ test("aperçu : deux valeurs égales dans un ordre différent ne sont jamais con
   await expect(page.locator("#inplace-input")).toBeHidden();
   await expect(page.locator("#toast")).toContainText("à gauche");
   await expect(page.locator("#source")).toHaveValue(src);
+});
+
+test("molécule : dessiner, insérer, puis rouvrir celle sous le curseur", async ({ page }) => {
+  await page.fill("#source", "");
+  await page.locator("#molecule-open").click();
+  const board = page.locator("#molecule-board");
+  const box = (await board.boundingBox())!;
+  const x = box.x + box.width / 2, y = box.y + box.height / 2;
+  await page.mouse.click(x, y);
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 25, y, { steps: 3 });
+  await page.mouse.move(x + 46, y, { steps: 3 });
+  await page.mouse.up();
+  await expect(page.locator("#molecule-source")).toHaveValue(/C 0 [-\d.]+, C 1 [-\d.]+ \| 1-2/);
+  await page.getByRole("button", { name: "Oxygène" }).click();
+  await page.mouse.click(x + 45, y);
+  await page.getByRole("button", { name: "Liaison double" }).click();
+  await page.mouse.click(x + 22, y);
+  await expect(page.locator("#molecule-source")).toHaveValue(/O 1 [-\d.]+ \| 1=2/);
+  await page.locator("#molecule-undo").click();
+  await expect(page.locator("#molecule-source")).toHaveValue(/O 1 [-\d.]+ \| 1-2/);
+  await page.locator("#molecule-insert").click();
+  await expect(page.locator("#preview .khw-molecule")).toBeVisible();
+  await page.locator("#source").evaluate((el: HTMLTextAreaElement) => el.setSelectionRange(5, 5));
+  await page.locator("#molecule-open").click();
+  await expect(page.locator("#molecule-insert")).toHaveText("Mettre à jour la molécule");
+  await page.locator("#molecule-template").selectOption("benzene");
+  await page.locator("#molecule-insert").click();
+  await expect(page.locator("#source")).toHaveValue(/^\\molecule\{C 0 -1,.*\}$/);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("aperçu : polices et \\middle se modifient", async ({ page }) => {
+  for (const [src, slot, key, expected] of [
+    ["\\mathbb{R}", "font:0:base", "N", "\\mathbb{N}"],
+    ["\\left(a\\middle|b\\right)", "fenced:1:fenced", "c", "\\left(a\\middle|c\\right)"],
+  ] as [string, string, string, string][]) {
+    await page.fill("#source", src);
+    await page.locator(`#preview [data-slot="${slot}"]`).click();
+    await page.keyboard.press("ControlOrMeta+a");
+    await page.keyboard.type(key);
+    await expect(page.locator("#source")).toHaveValue(expected);
+    await page.keyboard.press("Escape");
+  }
+});
+
+test("aperçu : document long, la bonne formule change et la frappe reste fluide", async ({ page }) => {
+  await page.locator('[data-mode="document"]').first().click();
+  const many = Array.from({ length: 140 }, (_, i) => `Ligne $\\frac{1}{2}$\n\n$$\nx_{${i}}=\\frac{a}{b}\n$$\n`).join("\n");
+  await page.fill("#source", many);
+  await page.waitForTimeout(1500);
+  const zone = page.locator('#preview [data-slot="frac:100:den"]');
+  await zone.scrollIntoViewIfNeeded();
+  await zone.click();
+  const ms = await page.evaluate(() => {
+    const input = document.getElementById("inplace-input") as HTMLInputElement;
+    const t = performance.now();
+    input.value = "7";
+    input.dispatchEvent(new Event("input"));
+    return performance.now() - t;
+  });
+  expect(ms).toBeLessThan(1000);
+  const value = await page.inputValue("#source");
+  expect(value.split("}{7}").length).toBe(2);
+  expect(value.slice(0, value.indexOf("}{7}")).split("\\frac").length - 1).toBe(101);
 });
