@@ -119,6 +119,7 @@ test("accueil : une source vide reste accueillante", async ({ page }) => {
 
 test("aperçu : bornes d'une somme affichée, cellules, accents et texte", async ({ page }) => {
   await page.fill("#source", "\\sum_{n=1}^{N} u_n");
+  await expect(page.locator('#preview [data-slot="sup:0:sup"]')).toHaveText("N");
   await page.locator('#preview [data-slot="sup:0:sup"]').click();
   await page.keyboard.press("ControlOrMeta+a");
   await page.keyboard.type("100");
@@ -254,4 +255,16 @@ test("aperçu : les étiquettes d'une flèche se modifient", async ({ page }) =>
   await page.locator('#preview [data-slot="arrow:0:under"]').click();
   await page.locator("#inplace-input").fill("c");
   await expect(page.locator("#source")).toHaveValue("\\xrightarrow[c]{a}");
+});
+
+test("aperçu : une somme haute n'est jamais coupée, même avec l'astuce", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 664 });
+  await page.fill("#source", "\\sum_{i=1}^{n} \\frac{1}{i}");
+  await expect(page.locator("#preview .khw-under")).toBeVisible();
+  await expect
+    .poll(() => page.locator("#preview").evaluate((el) => el.scrollHeight - el.clientHeight))
+    .toBeLessThanOrEqual(1);
+  await expect
+    .poll(() => page.locator("#preview-surface").evaluate((el) => el.scrollHeight - el.clientHeight))
+    .toBeLessThanOrEqual(1);
 });

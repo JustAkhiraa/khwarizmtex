@@ -276,6 +276,7 @@
     min-height: 44px;
     font-size: 13px;
     flex: 1 0 auto;
+    max-height: 60vh;
   }
   .symbol-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -746,4 +747,18 @@
 #molecule-bonds button,
 #molecule-tools button[data-kind="ring"] {
   font-size: 22px;
+}
+
+/* L'astuce ne doit jamais tasser la formule : c'est la surface qui grandit ou défile. */
+.preview-surface {
+  justify-content: safe center;
+}
+#preview {
+  flex-shrink: 0;
+}
+@media (max-width: 800px) {
+  #workspace:not(.document-mode) .preview-surface {
+    flex: 1 0 auto;
+    max-height: 60vh;
+  }
 }
