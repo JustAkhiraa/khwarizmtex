@@ -4,7 +4,7 @@
 
 const FRACTIONS = new Set(["frac", "dfrac", "tfrac", "cfrac", "binom", "dbinom", "tbinom"]);
 const ACCENTS = new Set(
-  "vec hat widehat bar overline underline tilde widetilde dot ddot acute grave breve check overrightarrow overleftarrow overleftrightarrow".split(" "),
+  "vec hat widehat bar overline underline tilde widetilde dot ddot acute grave breve check overrightarrow overleftarrow overleftrightarrow overarc".split(" "),
 );
 const TEXTS = new Set("text textbf textit textrm textsf texttt textnormal mbox".split(" "));
 const TABLES = new Set(

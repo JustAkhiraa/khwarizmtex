@@ -19,6 +19,7 @@ export interface MathMLOptions {
 
 const ACCENT_CHARS: Record<string, string> = {
   hat: '^',
+  arc: '⏜',
   check: 'ˇ',
   tilde: '~',
   acute: '´',

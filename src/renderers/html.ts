@@ -159,6 +159,7 @@ const ACCENT_MARKS: Record<string, string> = {
 /** Tracés des accents larges (viewBox 0 0 1000 300, étirés à la largeur). */
 const WIDE_ACCENTS: Record<string, string> = {
   hat: 'M0 270L500 30L1000 270',
+  arc: 'M0 270C250 -50 750 -50 1000 270',
   check: 'M0 30L500 270L1000 30',
   tilde: 'M0 230C120 40 300 30 500 150S880 260 1000 70',
 };

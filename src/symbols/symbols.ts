@@ -62,7 +62,9 @@ define(
 define(
   'mi',
   'ord',
-  `Gamma Γ Delta Δ Theta Θ Lambda Λ Xi Ξ Pi Π Sigma Σ Upsilon Υ Phi Φ Psi Ψ Omega Ω`,
+  `Gamma Γ Delta Δ Theta Θ Lambda Λ Xi Ξ Pi Π Sigma Σ Upsilon Υ Phi Φ Psi Ψ Omega Ω
+   Alpha Α Beta Β Epsilon Ε Zeta Ζ Eta Η Iota Ι Kappa Κ Mu Μ Nu Ν Omicron Ο
+   Rho Ρ Tau Τ Chi Χ`,
   'normal',
 );
 define(
@@ -83,7 +85,7 @@ define(
    blacklozenge ⧫ diamondsuit ♢ heartsuit ♡ clubsuit ♣ spadesuit ♠ top ⊤ bot ⊥
    nabla ∇ partial ∂ surd √ flat ♭ natural ♮ sharp ♯ checkmark ✓ degree °
    imath ı jmath ȷ eth ð mho ℧ complement ∁ Finv Ⅎ Game ⅁ Bbbk 𝕜 S § P ¶ dag †
-   ddag ‡ copyright © circledR ® pounds £ yen ¥ euro € vdots ⋮ ddots ⋱ adots ⋰
+   ddag ‡ copyright © circledR ® pounds £ yen ¥ euro € vdots ⋮ ddots ⋱ adots ⋰ iddots ⋰
    bigstar ★ blacktriangle ▲ blacktriangledown ▼ triangledown ▽ diagup ╱
    diagdown ╲ backslash \\ vert | Vert ‖ | ‖ maltese ✠ textdegree °`,
   'normal',
@@ -140,7 +142,10 @@ define(
    leftleftarrows ⇇ rightleftarrows ⇄ leftrightarrows ⇆ upuparrows ⇈
    downdownarrows ⇊ multimap ⊸ nrightarrow ↛ nleftarrow ↚ nRightarrow ⇏
    nLeftarrow ⇍ nleftrightarrow ↮ nLeftrightarrow ⇎ dashrightarrow ⇢
-   dashleftarrow ⇠`,
+   dashleftarrow ⇠ Lsh ↰ Rsh ↱ leqq ≦ geqq ≧ lneq ⪇ gneq ⪈ lneqq ≨ gneqq ≩
+   napprox ≉ doteqdot ≑ Coloneqq ⩴ nvdash ⊬ nvDash ⊭ Vvdash ⊪ nprec ⊀ nsucc ⊁
+   preccurlyeq ≼ succcurlyeq ≽ lesseqgtr ⋚ gtreqless ⋛ lessapprox ⪅ gtrapprox ⪆
+   notni ∌ Subset ⋐ Supset ⋑ vartriangle △`,
 );
 
 define('mo', 'punct', `colon : ldotp . cdotp ⋅`);
@@ -173,9 +178,10 @@ defineOps(
 defineOps(`int ∫ iint ∬ iiint ∭ iiiint ⨌ oint ∮ oiint ∯ oiiint ∰ intop ∫ smallint ∫`, true, false);
 
 // Noms de fonctions en romain.
-defineOps(`lim max min sup inf det gcd Pr injlim projlim`, false, true);
+defineOps(`lim max min sup inf det gcd lcm pgcd ppcm Pr injlim projlim`, false, true);
 defineOps(
-  `sin cos tan cot sec csc arcsin arccos arctan arccot sinh cosh tanh coth exp log
+  `sin cos tan cot sec csc arcsin arccos arctan arccot sinh cosh tanh coth sech csch arcsinh arccosh arctanh argsh argch argth
+   cotan tg ch sh th sgn erf exp log
    ln lg arg deg dim hom ker`,
   false,
   false,
