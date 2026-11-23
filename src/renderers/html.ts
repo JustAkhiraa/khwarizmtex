@@ -11,6 +11,7 @@
  * - au premier niveau, la formule est découpée après les relations et les
  *   opérateurs : le navigateur peut y passer à la ligne sur un petit écran.
  */
+import { cellSpan, rowWidth } from '../parser/helpers';
 import { atomClass, reclassify, spaceBetween } from '../ast/classes';
 import type {
   AccentNode,
@@ -473,7 +474,10 @@ class HtmlRenderer {
     const frac = el(
       'span',
       { class: cls('khw-frac', display && 'khw-frac-d', !node.bar && 'khw-frac-nobar', fenced && 'khw-frac-fenced') },
-      [el('span', { class: cls('khw-num', size, node.align && `khw-a${node.align}`) }, num.nodes), el('span', { class: cls('khw-den', size) }, den.nodes)],
+      [el('span', {
+        class: cls('khw-num', size, node.align && `khw-a${node.align}`),
+        style: node.rule === undefined ? undefined : `border-bottom-width:${fmt(node.rule / r)}em`,
+      }, num.nodes), el('span', { class: cls('khw-den', size) }, den.nodes)],
     );
     const numHeight = (Math.max(LINE_ASCENT, num.h) + Math.max(LINE_DESCENT, num.d)) * r + gap;
     const denHeight = (Math.max(LINE_ASCENT, den.h) + Math.max(LINE_DESCENT, den.d)) * r + gap;
@@ -576,6 +580,11 @@ class HtmlRenderer {
   // Grands opérateurs et bornes
 
   private op(node: OpNode, ctx: Ctx): Box {
+    if (node.sides) {
+      const { left, right } = node.sides;
+      const boxes = [this.node(left, ctx), this.op({ ...node, sides: undefined }, ctx), this.node(right, ctx)];
+      return this.row(boxes, 'khw-mrow');
+    }
     if (node.symbol) {
       const display = ctx.style === 'display';
       const integral = INTEGRALS.has(node.name);
@@ -591,7 +600,7 @@ class HtmlRenderer {
       return { node: el('span', { class: className }, [node.name]), h, d, cls: null };
     }
     const [h, d] = textMetrics(node.name, false);
-    return { node: el('span', { class: 'khw-op' }, [node.name]), h, d, cls: null };
+    return { node: el('span', { class: cls('khw-op', node.mark && `khw-op-${node.mark}`) }, [node.name]), h, d, cls: null };
   }
 
   /** Bornes dessus-dessous (∑ en style display, lim, \overset...). */
@@ -865,7 +874,9 @@ class HtmlRenderer {
             : ctx.style;
     const size = sizeClass(ctx.style, cellStyle);
     const r = ratio(ctx.style, cellStyle);
-    const columns = node.rows.reduce((m, row) => Math.max(m, row.length), 0);
+    const columns = node.rows.reduce((m, row) => Math.max(m, rowWidth(row)), 0);
+    // Cellules fusionnées : la table devient une grille, seule à savoir les étendre.
+    const grid = node.rows.some((row) => row.some((cell) => cellSpan(cell)));
     const rowGap = node.kind === 'aligned' || node.kind === 'gathered' ? 0.5 : node.kind === 'small' ? 0.1 : 0.2;
     let total = 0;
 
@@ -873,8 +884,10 @@ class HtmlRenderer {
       let rh = LINE_ASCENT;
       let rd = LINE_DESCENT;
       const cells: VNode[] = [];
-      for (let j = 0; j < columns; j++) {
-        let list = row[j] ?? [];
+      for (let j = 0, k = 0; j < columns; k++) {
+        let list = row[k] ?? [];
+        const span = cellSpan(list);
+        const width = span?.columns ?? 1;
         // aligned : « &= » garde l'espace de la relation (comme le {} de TeX).
         if (node.kind === 'aligned' && j % 2 === 1 && list[0]) {
           const first = atomClass(list[0]);
@@ -885,7 +898,7 @@ class HtmlRenderer {
           rh = Math.max(rh, b.h);
           rd = Math.max(rd, b.d);
         }
-        const align = node.cols[j] ?? node.cols[node.cols.length - 1] ?? 'c';
+        const align = span?.align ?? node.cols[j] ?? node.cols[node.cols.length - 1] ?? 'c';
         cells.push(
           el(
             'span',
@@ -894,13 +907,16 @@ class HtmlRenderer {
                 'khw-mtd',
                 align === 'l' && 'khw-al',
                 align === 'r' && 'khw-ar',
-                node.colLines[j] === true && 'khw-vl',
-                j === columns - 1 && node.colLines[columns] === true && 'khw-vr',
+                // Un filet déjà tracé à droite de la cellule fusionnée n'est pas doublé.
+                !(k > 0 && cellSpan(row[k - 1] ?? [])?.right) && (span ? span.left : node.colLines[j] === true) && 'khw-vl',
+                (span ? span.right : j === columns - 1 && node.colLines[columns] === true) && 'khw-vr',
               ),
+              style: grid ? `grid-column:${j + 1} / span ${width}` : undefined,
             },
             boxes.map((b) => b.node),
           ),
         );
+        j += width;
       }
       total += (rh + rd + rowGap) * r;
       return el(
@@ -916,7 +932,7 @@ class HtmlRenderer {
       );
     });
 
-    const table = el('span', { class: cls('khw-mtable', `khw-${node.kind}`, size) }, rows);
+    const table = el('span', { class: cls('khw-mtable', `khw-${node.kind}`, grid && 'khw-grid', size) }, rows);
     const middle = X_HEIGHT / 2;
     const h = total / 2 + middle;
     const d = total / 2 - middle;
@@ -938,6 +954,8 @@ class HtmlRenderer {
         const style = `background-color:${node.color ?? 'transparent'}` + (node.border ? `;border:max(1px, 0.05em) solid ${node.border}` : '');
         return { node: el('span', { class: 'khw-fill', style }, body.nodes), h: Math.max(LINE_ASCENT, body.h) + 0.15, d: Math.max(LINE_DESCENT, body.d) + 0.15, cls: null };
       }
+      case 'cancelto':
+        return { node: el('span', { class: 'khw-cancel khw-cancelto' }, [...body.nodes, el('span', { class: 'khw-cancel-tip' })]), h: body.h, d: body.d, cls: null };
       case 'longdiv':
         return { node: el('span', { class: 'khw-longdiv' }, body.nodes), h: Math.max(LINE_ASCENT, body.h) + 0.15, d: body.d, cls: null };
       case 'clap':

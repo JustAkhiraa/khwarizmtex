@@ -6,8 +6,9 @@
  * Les variantes de police passent par les alphabets mathématiques Unicode,
  * comme le recommande la norme du balisage natif.
  */
+import { cellSpan, rowWidth } from '../parser/helpers';
 import { atomClass, reclassify } from '../ast/classes';
-import type { ArrayNode, MathNode, MathStyle, MathVariant, ScriptsNode, SymbolNode } from '../ast/nodes';
+import type { ArrayNode, MathNode, OpNode, MathStyle, MathVariant, ScriptsNode, SymbolNode } from '../ast/nodes';
 import { isItalicByDefault, toMathAlphabetString } from '../symbols/alphabets';
 import { el, type VElement, type VNode } from './vnode';
 
@@ -43,6 +44,7 @@ const ACCENT_CHARS: Record<string, string> = {
 };
 
 const NOTATIONS: Record<string, string> = {
+  cancelto: 'updiagonalstrike northeastarrow',
   strike: 'horizontalstrike',
   longdiv: 'longdiv',
   box: 'box',
@@ -131,6 +133,14 @@ function symbol(node: SymbolNode, unary: boolean): VElement {
   return el('mo', attrs, [text]);
 }
 
+/** Opérateur avec son trait (\varlimsup) et ses indices latéraux (\sideset). */
+function fullOp(node: OpNode, movable: boolean, display: boolean): VElement {
+  let out = op(node.name, node.symbol, movable);
+  if (node.mark) out = el(node.mark === 'over' ? 'mover' : 'munder', {}, [out, el('mo', { stretchy: 'true' }, ['¯'])]);
+  if (node.sides) out = el('mrow', {}, [convert(node.sides.left, display, false), out, convert(node.sides.right, display, false)]);
+  return out;
+}
+
 function op(name: string, symbolic: boolean, movable: boolean): VElement {
   if (symbolic) return el('mo', { largeop: 'true', movablelimits: movable ? 'true' : 'false' }, [name]);
   return movable ? el('mo', { movablelimits: 'true', lspace: '0', rspace: '0' }, [name]) : el('mi', {}, [name]);
@@ -144,7 +154,7 @@ function scripts(node: ScriptsNode, display: boolean): VElement {
     const limits = base.limits === 'limits' || base.limits === 'auto';
     if (limits) {
       under = true;
-      baseNode = op(base.name, base.symbol, base.limits === 'auto');
+      baseNode = fullOp(base, base.limits === 'auto', display);
     }
   }
   if (base && base.type === 'accent' && (base.accent === 'overbrace' || base.accent === 'underbrace')) under = true;
@@ -165,20 +175,33 @@ function fence(c: string, form: 'prefix' | 'postfix' | 'infix'): VElement | null
   return el('mo', { fence: 'true', stretchy: 'true', symmetric: 'true', form }, [c]);
 }
 
+/** Cellules d'une ligne avec leur colonne de départ et leur largeur. */
+function placed(cells: MathNode[][], columns: number): { cell: MathNode[]; at: number; width: number }[] {
+  const out: { cell: MathNode[]; at: number; width: number }[] = [];
+  for (let at = 0, k = 0; at < columns; k++) {
+    const cell = cells[k] ?? [];
+    const width = cellSpan(cell)?.columns ?? 1;
+    out.push({ cell, at, width });
+    at += width;
+  }
+  return out;
+}
+
 function array(node: ArrayNode, display: boolean): VNode {
   const aligned = node.kind === 'aligned' || node.kind === 'gathered';
-  const columns = node.rows.reduce((m, r) => Math.max(m, r.length), 0);
+  const columns = node.rows.reduce((m, r) => Math.max(m, rowWidth(r)), 0);
   const names: Record<string, string> = { l: 'left', c: 'center', r: 'right' };
   const rows = node.rows.map((cells) =>
     el(
       'mtr',
       {},
-      Array.from({ length: columns }, (_, j) => {
-        const align = names[node.cols[j] ?? node.cols[node.cols.length - 1] ?? 'c'] ?? 'center';
+      placed(cells, columns).map(({ cell, at: j, width }) => {
+        const span = cellSpan(cell);
+        const align = names[span?.align ?? node.cols[j] ?? node.cols[node.cols.length - 1] ?? 'c'] ?? 'center';
         return el(
           'mtd',
-          align === 'center' ? {} : { columnalign: align, style: `text-align:${align}` },
-          [row(list(cells[j] ?? [], display || aligned))],
+          { ...(align === 'center' ? {} : { columnalign: align, style: `text-align:${align}` }), ...(width > 1 ? { columnspan: String(width) } : {}) },
+          [row(list(cell, display || aligned))],
         );
       }),
     ),
@@ -228,7 +251,7 @@ function convert(node: MathNode, display: boolean, unary: boolean): VNode {
       return el('mrow', {}, [el('mspace', { width: sp[0] }), inner, el('mspace', { width: sp[1] })]);
     }
     case 'frac': {
-      const frac = el('mfrac', node.bar ? (node.align ? { numalign: node.align === 'l' ? 'left' : 'right' } : {}) : { linethickness: '0' }, [convertArg(node.num, display), convertArg(node.den, display)]);
+      const frac = el('mfrac', node.bar ? (node.rule !== undefined ? { linethickness: em(node.rule) } : node.align ? { numalign: node.align === 'l' ? 'left' : 'right' } : {}) : { linethickness: '0' }, [convertArg(node.num, display), convertArg(node.den, display)]);
       if (node.left === undefined && node.right === undefined) return frac;
       const children: VNode[] = [];
       const l = fence(node.left ?? '', 'prefix');
@@ -245,7 +268,7 @@ function convert(node: MathNode, display: boolean, unary: boolean): VNode {
     case 'scripts':
       return scripts(node, display);
     case 'op':
-      return op(node.name, node.symbol, false);
+      return fullOp(node, false, display);
     case 'fenced': {
       const children: VNode[] = [];
       const l = fence(node.left, 'prefix');

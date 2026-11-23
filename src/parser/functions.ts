@@ -19,7 +19,7 @@ import type {
 } from '../ast/nodes';
 import type { Token } from '../lexer/lexer';
 import { lookupDelimiter, negate } from '../symbols/symbols';
-import { columnSpec, defaultColumns, mergeLetters, plainText } from './helpers';
+import { columnSpec, defaultColumns, mergeLetters, plainText, rowWidth } from './helpers';
 import type { Parser } from './parser';
 import { parseColor, parseDimension } from './values';
 import { chemistry, scientificNumber, unitSource } from './science';
@@ -380,6 +380,9 @@ define(['\\genfrac'], (p, t) => {
   const rule = p.parseRawArg()?.text ?? '';
   const style = p.parseRawArg()?.text ?? '';
   const frac: MathNode = { type: 'frac', num: p.parseArg(t), den: p.parseArg(t), bar: rule === '' || parseDimension(rule) !== 0 };
+  const thickness = rule === '' ? null : parseDimension(rule);
+  if (rule !== '' && thickness === null) return p.error('Épaisseur illisible dans \\genfrac (exemple : 1pt).', t.start, t.end);
+  if (thickness !== null && thickness > 0) frac.rule = Math.min(thickness, 0.5);
   const l = left === '' ? '' : lookupDelimiter(left);
   const r = right === '' ? '' : lookupDelimiter(right);
   if (l === undefined || r === undefined) return p.error('Délimiteur inconnu dans \\genfrac.', t.start, t.end);
@@ -411,7 +414,7 @@ define(['\\mathclap', '\\mathllap', '\\mathrlap', '\\clap', '\\llap', '\\rlap'],
 /** \cancelto{valeur}{x} : x barré, valeur en exposant. */
 define(['\\cancelto'], (p, t) => {
   const value = p.parseArg(t);
-  return { type: 'scripts', base: { type: 'enclose', notation: 'cancel', body: p.parseArg(t) }, sup: value };
+  return { type: 'scripts', base: { type: 'enclose', notation: 'cancelto', body: p.parseArg(t) }, sup: value };
 });
 
 const ENCLOSE_NAMES: Record<string, EncloseNode['notation']> = {
@@ -474,7 +477,27 @@ define(['\\sideset'], (p, t) => {
   const left = p.parseArg(t);
   const right = p.parseArg(t);
   const op = p.parseArg(t);
+  if (op.type === 'op') return { ...op, sides: { left, right } };
   return { type: 'group', body: [left, op, right], cls: 'op' };
+});
+
+define(['\\varlimsup', '\\varliminf'], (_p, t) => ({
+  type: 'op', name: 'lim', symbol: false, limits: 'auto', mark: t.text === '\\varlimsup' ? 'over' : 'under',
+}));
+
+/** \multicolumn{2}{c}{…} : cellule couvrant plusieurs colonnes d'un tableau. */
+define(['\\multicolumn'], (p, t) => {
+  const raw = p.parseRawArg();
+  const columns = Number(raw?.text);
+  const spec = columnSpec(p.parseRawArg()?.text ?? '');
+  const body = p.parseArg(t);
+  if (!Number.isInteger(columns) || columns < 1 || columns > 50 || spec.cols.length !== 1) {
+    return p.error('\\multicolumn attend un nombre de colonnes (1 à 50) et un alignement, par exemple \\multicolumn{2}{c}{x}.', t.start, raw?.end ?? t.end);
+  }
+  return {
+    type: 'group', body: [body],
+    span: { columns, align: spec.cols[0] ?? 'c', left: spec.lines[0] === true, right: spec.lines[1] === true },
+  };
 });
 
 // Chimie et unités
@@ -659,7 +682,7 @@ define(['\\begin'], (p, t) => {
   if (name === 'alignat' || name === 'alignat*' || name === 'alignedat') p.parseRawArg();
 
   const { rows, rowLines } = p.parseRows(t, name);
-  const columns = rows.reduce((m, r) => Math.max(m, r.length), 0);
+  const columns = rows.reduce((m, r) => Math.max(m, rowWidth(r)), 0);
   if (cols.length === 0) cols = defaultColumns(kind, columns);
   while (colLines.length < cols.length + 1) colLines.push(false);
 

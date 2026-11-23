@@ -11,6 +11,8 @@ export const SOURCES = [
   '\\root 3 \\of {x+1}', '\\cfrac[l]{1}{2+x}', '\\sfrac{1}{2}', '\\overbracket{a+b}', '\\underbracket{a+b}', '\\overparen{AB}', '\\underparen{AB}', '\\utilde{abc}',
   '\\begin{CD} A @>f>> B \\\\ @VgVV @VVhV \\\\ C @>>k> D \\end{CD}', '\\begin{CD} A @= B \\\\ @| @AAA \\\\ C @<<< D \\end{CD}',
   '\\begin{array}{r|l} 17 & 5 \\\\ \\hline 2 & 3 \\end{array}', '\\idotsint f', '\\varlimsup_n u_n', 'A\\nindep B', '\\curlyeqprec',
+  '\\begin{array}{|c|c|c|} \\hline \\multicolumn{2}{|c|}{\\text{Titre}} & z \\\\ \\hline a & b & c \\\\ \\hline \\end{array}',
+  '\\varliminf_{n\\to\\infty} u_n', '\\sideset{_a^b}{_c^d}\\sum_{i=1}^{n} x_i', '\\genfrac{}{}{3pt}{}{a}{b}', '\\ce{CH3-CH2-OH}', '\\ce{CH2=CH2}', '\\ce{HC#CH}',
 ];
 describe('compléments', () => {
   it.each(SOURCES)('rend %s sans erreur', (source) => {
@@ -28,6 +30,16 @@ describe('compléments', () => {
   it.each(['\\ce{<script>}', '\\SI{x}{m}', '\\begin{CD} A @>f B \\end{CD}', '\\begin{CD} A', '\\rule{x}{1em}', '\\root 3 x', '\\enclose{constructor}{x}', '\\colorbox{red;x}{a}'])(
     'isole l’erreur de %s', (source) => { expect(parse(source).errors.length).toBeGreaterThan(0); },
   );
+  it('fusionne les colonnes dans les deux rendus', () => {
+    const html = renderToString('\\begin{array}{cc}\\multicolumn{2}{c}{x}\\\\ a & b\\end{array}');
+    expect(html).toContain('grid-column:1 / span 2');
+    expect(html).toContain('columnspan="2"');
+    expect(parse('\\multicolumn{x}{c}{a}').errors.length).toBe(1);
+  });
+  it('garde les liaisons et les charges distinctes', () => {
+    expect(chemistry('CH3-CH3')).toBe('\\mathrm{C}\\mathrm{H}_{3}{-}\\mathrm{C}\\mathrm{H}_{3}');
+    expect(chemistry('Cl-')).toBe('\\mathrm{Cl}^{-}');
+  });
   it('borne les dimensions', () => {
     expect(renderToString('\\rule{99999em}{1em}')).not.toContain('width:99999em');
   });

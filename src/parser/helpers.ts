@@ -1,7 +1,7 @@
 /**
  * Petites fonctions partagées par le parseur et la table des commandes.
  */
-import type { ArrayKind, ColumnAlign, MathNode } from '../ast/nodes';
+import type { ArrayKind, ColumnAlign, GroupNode, MathNode } from '../ast/nodes';
 
 /** Fusionne les lettres voisines d'une même police (\mathrm{max} → un seul mot). */
 export function mergeLetters(list: MathNode[]): MathNode[] {
@@ -61,6 +61,15 @@ export function columnSpec(spec: string): { cols: ColumnAlign[]; lines: boolean[
     }
   }
   return { cols, lines };
+}
+
+/** Nombre de colonnes d'une ligne, \multicolumn compris. */
+export function cellSpan(cell: MathNode[]): GroupNode['span'] {
+  const only = cell.length === 1 ? cell[0] : undefined;
+  return only?.type === 'group' ? only.span : undefined;
+}
+export function rowWidth(row: MathNode[][]): number {
+  return row.reduce((n, cell) => n + (cellSpan(cell)?.columns ?? 1), 0);
 }
 
 /** Alignement par défaut des colonnes d'un environnement. */

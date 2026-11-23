@@ -6,6 +6,7 @@ const FRACTIONS = new Set(["frac", "dfrac", "tfrac", "cfrac", "binom", "dbinom",
 const ACCENTS = new Set(
   "vec hat widehat bar overline underline tilde widetilde dot ddot acute grave breve check overrightarrow overleftarrow overleftrightarrow overarc".split(" "),
 );
+const STRIKES = new Set("cancel bcancel xcancel cancelto sout longdiv".split(" "));
 const TEXTS = new Set("text textbf textit textrm textsf texttt textnormal mbox".split(" "));
 const TABLES = new Set(
   "matrix pmatrix bmatrix Bmatrix vmatrix Vmatrix smallmatrix cases dcases rcases aligned alignedat gathered array subarray split".split(" "),
@@ -200,6 +201,25 @@ export function findSlots(src, { comments = true } = {}) {
     } else if (name === "left") {
       const body = leftRight(src, delimiterEnd(src, after));
       if (body) slots.push({ kind: "fenced", at: i, parts: [{ role: "fenced", ...body }] });
+    } else if (STRIKES.has(name)) {
+      let j = after;
+      if (name === "cancelto") j = argument(src, after)?.next ?? after;
+      const arg = argument(src, j);
+      if (arg) slots.push({ kind: "strike", at: i, parts: [{ role: "base", start: arg.start, end: arg.end, bare: arg.bare }] });
+    } else if (name === "overbrace" || name === "underbrace") {
+      const arg = argument(src, after);
+      if (arg) slots.push({ kind: "brace", at: i, parts: [{ role: "base", start: arg.start, end: arg.end, bare: arg.bare }] });
+    } else if (/^x[a-zA-Z]*(arrow|harpoon|harpoons|mapsto)$/.test(name)) {
+      let j = skipSpaces(src, after);
+      const parts = [];
+      if (src[j] === "[") {
+        const end = closing(src, j, "]", "[");
+        if (end < 0) continue;
+        parts.push({ role: "under", start: j + 1, end: end - 1 });
+        j = end;
+      }
+      const arg = argument(src, j);
+      if (arg) slots.push({ kind: "arrow", at: i, parts: [{ role: "over", start: arg.start, end: arg.end, bare: arg.bare }, ...parts] });
     } else if (name === "boxed") {
       const arg = argument(src, after);
       if (arg) slots.push({ kind: "boxed", at: i, parts: [{ role: "base", start: arg.start, end: arg.end }] });
@@ -247,5 +267,7 @@ export const ROLE_NAMES = {
   text: "Texte",
   cell: "Cellule",
   fenced: "Contenu",
+  over: "Texte au-dessus",
+  under: "Texte au-dessous",
   sub: "Indice bas",
 };

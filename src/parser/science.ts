@@ -89,7 +89,7 @@ export function chemistry(input: string): string | null {
       out += `${c}{\\mathrm{${arg.text}}}`;
       i = arg.next;
       attached = true;
-    } else if ((c === '+' || c === '-') && attached) {
+    } else if ((c === '+' || c === '-') && attached && (i + 1 >= s.length || ' )]'.includes(s[i + 1] as string))) {
       out += `^{${c}}`;
       i++;
     } else if (c === '(') {
@@ -111,8 +111,12 @@ export function chemistry(input: string): string | null {
       out += c;
       i++;
       attached = false;
+    } else if (attached && (c === '-' || c === '=' || c === '#')) {
+      // Liaison simple, double ou triple entre deux atomes : sans espace.
+      out += c === '-' ? '{-}' : c === '=' ? '{=}' : '{\\equiv}';
+      i++;
+      attached = false;
     } else if (c === '+' || c === '-' || c === '=') {
-      // Entre deux atomes collés, « - » et « = » sont des liaisons.
       out += c;
       i++;
       attached = false;

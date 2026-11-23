@@ -84,8 +84,6 @@ export const BUILTIN_MACROS: Record<string, string> = {
   '\\sfrac': '{{}^{#1}\\!/\\!_{#2}}',
   '\\nicefrac': '{{}^{#1}\\!/\\!_{#2}}',
   '\\idotsint': '\\int\\!\\cdots\\!\\int',
-  '\\varlimsup': '\\mathop{\\overline{\\mathrm{lim}}}',
-  '\\varliminf': '\\mathop{\\underline{\\mathrm{lim}}}',
   '\\nindep': '\\mathrel{\\perp\\!\\!\\!\\!/\\!\\!\\!\\perp}',
   '\\hfill': '\\quad',
 

@@ -17,11 +17,20 @@ const DOM_PARTS = {
     find: (box, part) => child(box, part.role === "index" ? ".khw-root" : ".khw-radicand"),
   },
   // Exposant ou borne du haut d'une somme affichée en grand.
-  sup: { selector: "sup, .khw-limits > .khw-over", find: (box) => box },
-  sub: { selector: "sub, .khw-limits > .khw-under", find: (box) => box },
+  sup: { selector: "sup, .khw-limits > .khw-over, .khw-braced > .khw-over > .khw-brace-label", find: (box) => box },
+  sub: { selector: "sub, .khw-limits > .khw-under, .khw-braced > .khw-under > .khw-brace-label", find: (box) => box },
   accent: { selector: ".khw-accent", find: (box) => child(box, ".khw-base") },
   text: { selector: ".khw-text", find: (box) => box },
   fenced: { selector: ".khw-lr", find: (box) => box },
+  strike: {
+    selector: ":is(.khw-cancel, .khw-bcancel, .khw-xcancel, .khw-strike, .khw-longdiv)",
+    find: (box) => box,
+  },
+  brace: { selector: ".khw-braced", find: (box) => child(box, ".khw-base") },
+  arrow: {
+    selector: ".khw-stack:has(> .khw-base > .khw-xarrow)",
+    find: (box, part) => child(box, part.role === "under" ? ".khw-under" : ".khw-over"),
+  },
   boxed: { selector: ".khw-boxed", find: (box) => box },
   cell: {
     selector: ".khw-mtable",
@@ -39,6 +48,9 @@ const KIND_NAMES = {
   cell: " du tableau ",
   fenced: " des parenthèses ",
   boxed: " du cadre ",
+  strike: " barré ",
+  brace: " de l’accolade ",
+  arrow: " de la flèche ",
 };
 const squash = (text) => text.replace(/[\s​⁡-⁤]+/g, "");
 function balanced(text) {
@@ -58,6 +70,7 @@ export function bindPreviewEditor({
   engine,
   getMode,
   apply,
+  renderProbe,
   notify,
   launcher,
   flush,
@@ -171,11 +184,41 @@ export function bindPreviewEditor({
       input.scrollIntoView({ block: "nearest", inline: "nearest" });
     }
   }
+  /**
+   * Preuve avant modification : on remplace la portion par un témoin, hors écran.
+   * S'il n'apparaît pas dans la zone cliquée, le lien est faux et on refuse.
+   */
+  const WITNESS = "⟐";
+  function proven(zone) {
+    const [kind, rank] = zone.key.split(":");
+    const src = source.value;
+    try {
+      const box = renderProbe(
+        src.slice(0, zone.part.start) + partText(zone.part, WITNESS) + src.slice(zone.part.end),
+      );
+      const spec = DOM_PARTS[kind];
+      const element = box.querySelectorAll(".khw-html " + spec.selector)[Number(rank)];
+      const el = element && spec.find(element, zone.part);
+      return Boolean(el) && squash(el.textContent) === WITNESS;
+    } catch {
+      return false;
+    }
+  }
+  function refuse() {
+    notify(
+      "Cette partie ne peut pas être reliée avec certitude à la source : modifiez-la à gauche.",
+    );
+  }
   function open(key) {
     // Un rendu encore en attente décrirait l'ancienne source : on le fait d'abord.
     if (pending()) flush();
     const zone = zones.find((z) => z.key === key);
     if (!zone) return;
+    if (!proven(zone)) {
+      close(false);
+      refuse();
+      return;
+    }
     current = key;
     show(zone, true);
   }
@@ -196,6 +239,12 @@ export function bindPreviewEditor({
       return;
     }
     input.classList.remove("invalid");
+    // La frappe précédente a pu changer la structure : le lien est reprouvé.
+    if (!proven(zone)) {
+      close(false);
+      refuse();
+      return;
+    }
     apply(zone.part.start, zone.part.end, partText(zone.part, input.value));
   });
   input.addEventListener("keydown", (event) => {
@@ -230,9 +279,7 @@ export function bindPreviewEditor({
       return;
     }
     if (event.target.closest(".khw-html"))
-      notify(
-        "Cette partie ne peut pas être reliée avec certitude à la source : modifiez-la à gauche.",
-      );
+      refuse();
   });
   launcher.addEventListener("click", () => {
     if (pending()) flush();

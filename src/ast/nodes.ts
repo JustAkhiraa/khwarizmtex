@@ -56,6 +56,8 @@ export interface GroupNode {
   type: 'group';
   body: MathNode[];
   cls?: AtomClass;
+  /** \multicolumn : colonnes couvertes, quand le groupe est seul dans sa cellule. */
+  span?: { columns: number; align: ColumnAlign; left: boolean; right: boolean };
 }
 
 /** \frac, \binom, \dfrac... */
@@ -70,6 +72,8 @@ export interface FracNode {
   right?: string;
   /** Alignement du numérateur (\cfrac[l]). */
   align?: 'l' | 'r';
+  /** Épaisseur de barre choisie, en em (\genfrac). */
+  rule?: number;
 }
 
 /** \sqrt{x} ou \sqrt[n]{x}. */
@@ -95,6 +99,10 @@ export interface OpNode {
   symbol: boolean;
   /** Bornes au-dessus et au-dessous (limits) ou en indice (nolimits). */
   limits: 'auto' | 'limits' | 'nolimits';
+  /** Trait sur ou sous le nom (\varlimsup, \varliminf). */
+  mark?: 'over' | 'under';
+  /** Indices accolés des deux côtés (\sideset). */
+  sides?: { left: MathNode; right: MathNode };
 }
 
 /** \left( ... \middle| ... \right). */
@@ -200,7 +208,7 @@ export interface EncloseNode {
   type: 'enclose';
   notation:
     | 'box' | 'cancel' | 'bcancel' | 'xcancel' | 'strike' | 'longdiv'
-    | 'fill' | 'clap' | 'llap' | 'rlap' | 'raise' | 'rule';
+    | 'fill' | 'cancelto' | 'clap' | 'llap' | 'rlap' | 'raise' | 'rule';
   body: MathNode;
   /** Fond (\colorbox) et cadre (\fcolorbox) : couleurs déjà validées. */
   color?: string;

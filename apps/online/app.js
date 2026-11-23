@@ -263,6 +263,18 @@ previewEditor = bindPreviewEditor({
   launcher: $("preview-edit"),
   flush: () => render(),
   pending: () => renderPending,
+  renderProbe(text) {
+    const box = document.createElement("div");
+    if (state.mode === "document") renderDocument(text, title.value, box, engine);
+    else
+      engine.renderToElement(text, box, {
+        displayMode: true,
+        maxLength: 50000,
+        maxDepth: 64,
+        maxExpand: 500,
+      });
+    return box;
+  },
   apply(start, end, text) {
     if (source.value.length - (end - start) + text.length > 50000) {
       notify("La limite de 50 000 caractères est atteinte.");

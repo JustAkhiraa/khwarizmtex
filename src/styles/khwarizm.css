@@ -847,6 +847,48 @@
   border-bottom: max(1px, var(--khw-rule-em, 0.05) * 1em) solid;
 }
 
+/* Cellules fusionnées (\multicolumn) : lignes transparentes, cellules sur la grille. */
+.khw .khw-mtable.khw-grid {
+  display: inline-grid;
+  align-items: stretch;
+}
+
+.khw .khw-grid > .khw-mtr {
+  display: contents;
+}
+
+.khw .khw-grid > .khw-mtr > .khw-mtd {
+  display: block;
+  align-content: center;
+}
+
+.khw .khw-op-over {
+  display: inline-block;
+  line-height: 1;
+  border-top: max(1px, 0.05em) solid;
+}
+
+.khw .khw-op-under {
+  display: inline-block;
+  line-height: 1;
+  border-bottom: max(1px, 0.05em) solid;
+}
+
+.khw .khw-cancelto {
+  position: relative;
+  padding: 0.12em 0.4em 0 0;
+}
+
+.khw .khw-cancel-tip {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0.3em;
+  height: 0.3em;
+  border-top: max(1px, 0.06em) solid;
+  border-right: max(1px, 0.06em) solid;
+}
+
 /* Encadrés, barrés, fantômes */
 
 .khw .khw-boxed {

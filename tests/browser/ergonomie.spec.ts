@@ -135,3 +135,29 @@ test("aperçu : bornes d'une somme affichée, cellules, accents et texte", async
   await page.keyboard.type("si ");
   await expect(page.locator("#source")).toHaveValue("\\vec{u} \\text{si } x");
 });
+
+test("aperçu : barrés, accolades et flèches se modifient", async ({ page }) => {
+  for (const [src, slot, expected] of [
+    ["\\cancel{□}", "strike:0:base", "\\cancel{y}"],
+    ["\\overbrace{□}^{n}", "brace:0:base", "\\overbrace{y}^{n}"],
+    ["\\underbrace{a}_{□}", "sub:0:sub", "\\underbrace{a}_{y}"],
+    ["\\xrightarrow{□}", "arrow:0:over", "\\xrightarrow{y}"],
+    ["\\mathbb{R}^{□}", "sup:0:sup", "\\mathbb{R}^{y}"],
+  ] as [string, string, string][]) {
+    await page.fill("#source", src);
+    await page.locator(`#preview [data-slot="${slot}"]`).click();
+    await page.keyboard.type("y");
+    await expect(page.locator("#source")).toHaveValue(expected);
+    await page.keyboard.press("Escape");
+  }
+});
+
+test("aperçu : deux valeurs égales dans un ordre différent ne sont jamais confondues", async ({ page }) => {
+  // L'étiquette est affichée avant le contenu, mais écrite après dans la source.
+  const src = "\\overbrace{a^{2}}^{2}";
+  await page.fill("#source", src);
+  await page.locator("#preview .khw-brace-label").click();
+  await expect(page.locator("#inplace-input")).toBeHidden();
+  await expect(page.locator("#toast")).toContainText("à gauche");
+  await expect(page.locator("#source")).toHaveValue(src);
+});
