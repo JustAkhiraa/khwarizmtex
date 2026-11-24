@@ -270,7 +270,7 @@ test("aperçu : une somme haute n'est jamais coupée, même avec l'astuce", asyn
 });
 
 test("téléphone : formule, code et clavier tiennent dans l'écran, sans défilement", async ({ page }) => {
-  for (const [width, height] of [[320, 568], [390, 664], [430, 800], [740, 340], [844, 390], [768, 1024], [1280, 720]]) {
+  for (const [width, height] of [[320, 568], [390, 664], [430, 800], [740, 340], [844, 390], [768, 1024], [1280, 720]] as [number, number][]) {
     await page.setViewportSize({ width, height });
     await page.waitForTimeout(150);
     for (const id of ["#preview", "#source", "#math-toolbar", "#export-open", "#menu-open"]) {
@@ -320,5 +320,5 @@ test("molécule : un cycle s'accroche à une liaison sans superposer les atomes"
   const atoms = [...value.matchAll(/C (-?[\d.]+) (-?[\d.]+)/g)].map((m) => [Number(m[1]), Number(m[2])]);
   expect(atoms.length).toBe(9);
   for (let i = 0; i < 9; i++)
-    for (let j = 0; j < i; j++) expect(Math.hypot(atoms[i][0] - atoms[j][0], atoms[i][1] - atoms[j][1])).toBeGreaterThan(0.9);
+    for (let j = 0; j < i; j++) expect(Math.hypot(atoms[i]![0]! - atoms[j]![0]!, atoms[i]![1]! - atoms[j]![1]!)).toBeGreaterThan(0.9);
 });
