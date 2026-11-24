@@ -3,6 +3,8 @@ import { MAX_SOURCE } from "./model.js";
 import { CATALOG } from "./catalog.js";
 import { catalogIdFor } from "./recents.js";
 import { parseDocument, inlineParts } from "./document.js";
+import { coarse } from "./layout.js";
+import { eraseAt, nextStop } from "./keys.js";
 
 const completionMap = new Map(COMMANDS.map((entry) => [entry[0], entry]));
 for (const item of CATALOG) {
@@ -37,17 +39,23 @@ export function bindEditor(
     const selected = source.value.slice(start, end);
     if (wrapSelection && selected && value.includes("□"))
       value = value.replace("□", selected);
+    // \pi puis x : sans espace, la commande deviendrait \pix.
+    if (/\\[a-zA-Z]+$/.test(source.value.slice(0, start)) && /^[a-zA-Z]/.test(value)) value = " " + value;
     if (source.value.length - (end - start) + value.length > MAX_SOURCE) {
       notify("La limite de 50 000 caractères est atteinte.");
       return;
     }
     const placeholder = value.indexOf("□");
     source.setRangeText(value, start, end, "end");
-    source.focus({ preventScroll: true });
+    focusSource();
     if (placeholder >= 0)
       source.setSelectionRange(start + placeholder, start + placeholder + 1);
     close();
     onChange(false);
+  }
+  /** Au doigt, le clavier du téléphone ne s'ouvre que si l'on écrivait déjà. */
+  function focusSource() {
+    if (!coarse() || document.activeElement === source) source.focus({ preventScroll: true });
   }
   function accept(index) {
     if (prefix && matches[index])
@@ -90,6 +98,7 @@ export function bindEditor(
     value,
     selection = [source.selectionStart, source.selectionEnd],
   ) {
+    if (api.intercept?.(value)) return;
     if (getMode() === "document") {
       const position = selection[0];
       const inMath = parseDocument(source.value).blocks.some((block) =>
@@ -107,13 +116,42 @@ export function bindEditor(
     }
     replace(value, selection[0], selection[1]);
   }
-  const api = { close, insert, onInsertStructure: null };
+  function select(start, end) {
+    focusSource();
+    source.setSelectionRange(start, end);
+    api.onMove?.();
+  }
+  function erase() {
+    if (api.interceptKey?.("erase")) return;
+    const found = eraseAt(source.value, source.selectionStart, source.selectionEnd);
+    if (found?.select) select(...found.select);
+    else if (found) {
+      // Vider une case la rend de nouveau visible.
+      const [a, b] = found.remove;
+      const empty = source.value[a - 1] === "{" && source.value[b] === "}" && source.value.slice(a, b) !== "□";
+      source.setRangeText(empty ? "□" : "", a, b, "end");
+      if (empty) source.setSelectionRange(a, a + 1);
+      focusSource();
+      onChange(false);
+    }
+  }
+  function next() {
+    if (api.interceptKey?.("next")) return;
+    select(...nextStop(source.value, source.selectionStart, source.selectionEnd));
+  }
+  const api = { close, insert, erase, next, onInsertStructure: null, intercept: null, interceptKey: null, onMove: null };
+  for (const [id, action] of [["key-back", erase], ["key-next", next]]) {
+    const key = document.getElementById(id);
+    key.addEventListener("mousedown", (event) => event.preventDefault());
+    key.addEventListener("click", action);
+  }
   for (const structure of STRUCTURES) {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = structure.icon;
     button.title = structure.label;
     button.setAttribute("aria-label", structure.label);
+    button.addEventListener("mousedown", (event) => event.preventDefault());
     button.addEventListener("click", () => {
       const before = source.value;
       insert(structure.source);

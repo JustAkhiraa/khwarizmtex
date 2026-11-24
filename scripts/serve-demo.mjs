@@ -31,6 +31,8 @@ const onlineFiles = [
   "recents.js",
   "slots.js",
   "molecule.js",
+  "layout.js",
+  "keys.js",
   "molecule-model.js",
   "preview-edit.js",
 ];

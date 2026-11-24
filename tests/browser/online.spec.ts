@@ -14,16 +14,17 @@ test('atelier responsive avec police locale et aperçu réel', async ({ page }, 
   await info.attach('atelier-desktop', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
   await page.setViewportSize({ width: 320, height: 720 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+  await page.locator('#menu-open').click();
   await page.locator('#theme').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await info.attach('atelier-mobile', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
 });
 test('les brouillons sont indépendants et restaurés après rechargement', async ({ page }) => {
   await page.locator('#source').fill('x^3+1');
-  await expect(page.locator('#save-status')).toHaveText('Enregistré sur cet appareil');
+  await expect(page.locator('#save-status')).toHaveText('Enregistré');
   await page.locator('[data-mode=document]').click();
   await page.locator('#source').fill('## Mon document\n\nUne formule $x^2$.');
-  await expect(page.locator('#save-status')).toHaveText('Enregistré sur cet appareil');
+  await expect(page.locator('#save-status')).toHaveText('Enregistré');
   await page.reload();
   await expect(page.locator('#source')).toHaveValue(/Mon document/);
   await page.locator('[data-mode=formula]').click();
@@ -32,7 +33,7 @@ test('les brouillons sont indépendants et restaurés après rechargement', asyn
 test('insertion, autocomplétion et annulation fonctionnent au clavier', async ({ page }) => {
   await page.locator('#source').fill('x');
   await page.locator('#source').selectText();
-  await page.getByRole('button', { name: 'Fraction', exact: true }).click();
+  await page.locator('#math-toolbar').getByRole('button', { name: 'Fraction', exact: true }).click();
   await expect(page.locator('#source')).toHaveValue('\\frac{x}{□}');
   await page.locator('#undo').click();
   await expect(page.locator('#source')).toHaveValue('x');
@@ -63,8 +64,8 @@ test('texte malveillant et erreurs restent du contenu inerte', async ({ page }) 
   await expect(page.locator('#source')).toBeFocused();
 });
 test('bibliothèque, export source et export de sauvegarde', async ({ page }) => {
-  if (await page.locator('.mobile-brand').isVisible()) await page.getByRole('button', { name: 'Bibliothèque d’exemples', exact: true }).click();
-  else await page.getByRole('button', { name: 'Exemples', exact: true }).click();
+  await page.locator('#menu-open').click();
+  await page.locator('#menu [data-library]').click();
   await page.locator('#example-search').fill('Euler');
   await page.locator('.example-card').click();
   await expect(page.locator('#source')).toHaveValue('e^{i\\pi} + 1 = 0');
@@ -79,7 +80,7 @@ test('bibliothèque, export source et export de sauvegarde', async ({ page }) =>
 });
 test('un lien partagé Unicode ouvre la formule sans effacer immédiatement le brouillon', async ({ page }) => {
   await page.locator('#source').fill('brouillon');
-  await expect(page.locator('#save-status')).toHaveText('Enregistré sur cet appareil');
+  await expect(page.locator('#save-status')).toHaveText('Enregistré');
   const formula = '\\text{énergie} = mc^2';
   const encoded = Buffer.from(formula, 'utf8').toString('base64url');
   await page.goto(url + '#f=' + encoded);
@@ -115,7 +116,7 @@ test('restaure les deux modes après confirmation et refuse un fichier invalide'
 test('le mode impression masque l’interface et conserve tout le document', async ({ page }, info) => {
   await page.locator('[data-mode=document]').click();
   await page.emulateMedia({ media: 'print' });
-  await expect(page.locator('.sidebar')).toBeHidden();
+  await expect(page.locator('.dock')).toBeHidden();
   await expect(page.locator('.editor-pane')).toBeHidden();
   await expect(page.locator('#preview h1')).toBeVisible();
   await expect(page.locator('#preview')).toContainText('À vous de jouer');

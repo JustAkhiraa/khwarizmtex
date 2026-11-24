@@ -1,6 +1,6 @@
 // Fenêtre de dessin d'une molécule : on tire des liaisons, la source suit.
 import {
-  addAtom, addRing, connect, freeSpot, nearestAtom, nearestBond, readMolecule, removeAtom, snap, writeMolecule,
+  addAtom, addRing, ringOnAtom, ringOnBond, connect, freeSpot, nearestAtom, nearestBond, readMolecule, removeAtom, snap, writeMolecule,
 } from "./molecule-model.js";
 
 const $ = (id) => document.getElementById(id);
@@ -42,10 +42,26 @@ export function bindMolecule(editor, source, engine, notify) {
     const box = board.getBoundingClientRect();
     return { w: box.width || 600, h: box.height || 320, box };
   }
+  // Cadrage : le dessin entier reste visible, sans bouger pendant un geste.
+  let frame = { x: 0, y: 0, zoom: 1 };
+  function fit() {
+    if (drag) return;
+    const { w, h } = size();
+    if (!model.atoms.length) return void (frame = { x: 0, y: 0, zoom: 1 });
+    const xs = model.atoms.map((a) => a.x * SCALE);
+    const ys = model.atoms.map((a) => a.y * SCALE);
+    const left = Math.min(...xs) - 45, right = Math.max(...xs) + 45;
+    const top = Math.min(...ys) - 40, bottom = Math.max(...ys) + 40;
+    const inside = left >= -w / 2 && right <= w / 2 && top >= -h / 2 && bottom <= h / 2;
+    frame = inside
+      ? { x: 0, y: 0, zoom: 1 }
+      : { x: (left + right) / 2, y: (top + bottom) / 2, zoom: Math.min(1, w / (right - left), h / (bottom - top)) };
+  }
   // Le dessin est celui du moteur ; par-dessus, des repères invisibles pour viser.
   function draw(preview) {
+    fit();
     const { w, h } = size();
-    board.setAttribute("viewBox", `${-w / 2} ${-h / 2} ${w} ${h}`);
+    board.setAttribute("viewBox", `${frame.x - w / 2 / frame.zoom} ${frame.y - h / 2 / frame.zoom} ${w / frame.zoom} ${h / frame.zoom}`);
     board.replaceChildren();
     const shown = writeMolecule(model);
     if (shown) {
@@ -79,8 +95,8 @@ export function bindMolecule(editor, source, engine, notify) {
   function place(event) {
     const { w, h, box } = size();
     return {
-      x: (event.clientX - box.left - w / 2) / SCALE,
-      y: (event.clientY - box.top - h / 2) / SCALE,
+      x: ((event.clientX - box.left - w / 2) / frame.zoom + frame.x) / SCALE,
+      y: ((event.clientY - box.top - h / 2) / frame.zoom + frame.y) / SCALE,
     };
   }
   function target(point, from) {
@@ -122,12 +138,13 @@ export function bindMolecule(editor, source, engine, notify) {
         if (atom >= 0)
           model.atoms[atom].charge = model.atoms[atom].charge === tool.value ? "" : tool.value;
       } else if (tool.kind === "ring") {
-        // Sur un atome, le cycle l'utilise comme sommet du bas.
-        const radius = 1 / (2 * Math.sin(Math.PI / tool.size));
-        const base = atom >= 0 ? model.atoms[atom] : null;
-        const x = base ? base.x : start.x;
-        const y = base ? base.y + radius : start.y;
-        if (!addRing(model, tool.size, x, y, tool.alternate)) notify("Dessin trop grand : 120 atomes au plus.");
+        const done =
+          atom >= 0
+            ? ringOnAtom(model, tool.size, atom, tool.alternate)
+            : bond >= 0
+              ? ringOnBond(model, tool.size, bond, tool.alternate)
+              : addRing(model, tool.size, start.x, start.y, tool.alternate);
+        if (!done) notify("Dessin trop grand : 120 atomes au plus.");
       } else if (atom >= 0 && moved) {
         const end = target(point, atom);
         const to = end.index >= 0 ? end.index : addAtom(model, tool.value, end.x, end.y);
@@ -144,11 +161,28 @@ export function bindMolecule(editor, source, engine, notify) {
         if (current.mark === mark && (mark === ">" || mark === "<"))
           [current.from, current.to] = [current.to, current.from];
         else current.mark = mark;
-      } else if (addAtom(model, tool.value, start.x, start.y) < 0) notify("Dessin trop grand : 120 atomes au plus.");
+      } else {
+        // Tout près d'un atome, on voulait le prolonger : jamais deux atomes l'un sur l'autre.
+        const close = nearestAtom(model, start.x, start.y, 0.8);
+        if (close >= 0) {
+          const end = target(start, close);
+          connect(model, close, end.index >= 0 ? end.index : addAtom(model, tool.value, end.x, end.y), mark);
+        } else if (addAtom(model, tool.value, start.x, start.y) < 0) notify("Dessin trop grand : 120 atomes au plus.");
+      }
     });
     draw();
   });
 
+  const HINTS = {
+    atom: "Touchez pour poser un atome, tirez depuis un atome pour le lier, touchez une liaison pour changer son type.",
+    charge: "Touchez un atome pour lui donner cette charge.",
+    ring: "Touchez le fond, un atome ou une liaison pour y accrocher le cycle.",
+    erase: "Touchez un atome ou une liaison pour l’effacer.",
+  };
+  function hint() {
+    $("molecule-hint").textContent = HINTS[tool.kind];
+  }
+  hint();
   function press(group, button) {
     for (const other of $(group).querySelectorAll("button"))
       other.setAttribute("aria-pressed", String(other === button));
@@ -159,6 +193,7 @@ export function bindMolecule(editor, source, engine, notify) {
     const { kind, value, size: ring, alternate } = button.dataset;
     tool = { kind, value, size: Number(ring), alternate: Boolean(alternate) };
     press("molecule-tools", button);
+    hint();
   });
   $("molecule-bonds").addEventListener("click", (event) => {
     const button = event.target.closest("button[data-mark]");

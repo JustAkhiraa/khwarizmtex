@@ -13,6 +13,7 @@ import { bindEditor } from "./editor.js";
 import { bindTools } from "./tools.js";
 import { bindMolecule } from "./molecule.js";
 import { bindPreviewEditor } from "./preview-edit.js";
+import { bindLayout, coarse } from "./layout.js";
 import { bindImports } from "./imports.js";
 import { download, filename, copyText, mathml } from "./exports.js";
 
@@ -86,7 +87,7 @@ function showEmpty(preview) {
   hint.textContent =
     state.mode === "document"
       ? "Écrivez un titre avec #, puis vos maths entre $."
-      : "Choisissez un symbole ci-dessus, ou tapez \\frac.";
+      : "Touchez un symbole du clavier ci-dessous, ou écrivez du code.";
   box.append(mark, line, hint);
   preview.replaceChildren(box);
 }
@@ -104,7 +105,7 @@ function persist() {
   const saved = saveState(storage, state);
   $("save-status").classList.toggle("saved", saved);
   $("save-status").textContent = saved
-    ? "Enregistré sur cet appareil"
+    ? "Enregistré"
     : "Sauvegarde indisponible";
   if (!saved)
     notify(
@@ -208,9 +209,8 @@ function syncView() {
   const isDocument = state.mode === "document";
   $("workspace").classList.toggle("document-mode", isDocument);
   $("preview").className = isDocument ? "document-preview" : "formula-preview";
-  $("breadcrumb-mode").textContent = isDocument ? "Document" : "Formule";
-  $("language").textContent = isDocument ? "Texte + maths" : "Formule";
-  $("copy").textContent = isDocument ? "Copier la source" : "Copier la formule";
+  $("editor-heading").textContent = isDocument ? "Texte" : "Code";
+  tools?.modeChanged();
   $("share").hidden = isDocument;
   $("export-mathml").hidden = isDocument;
   $("source-help").textContent = isDocument
@@ -251,13 +251,15 @@ const editor = bindEditor(
   notify,
   () => state.mode,
 );
-bindTools(editor, source, engine, notify, edit);
+const tools = bindTools(editor, source, engine, notify, edit, () => state.mode);
 bindMolecule(editor, source, engine, notify);
+bindLayout();
 // Une frappe dans l'aperçu passe par le même chemin qu'une frappe à gauche :
 // même historique (regroupé), même sauvegarde, rendu immédiat.
 previewEditor = bindPreviewEditor({
   preview: $("preview"),
-  surface: $("preview-surface"),
+  surface: $("preview-pane"),
+  scroller: $("preview-surface"),
   source,
   engine,
   getMode: () => state.mode,
@@ -326,7 +328,7 @@ document
   .forEach((button) =>
     button.addEventListener("click", () => switchMode(button.dataset.mode)),
   );
-$("atelier").addEventListener("click", () => source.focus());
+
 
 function loadExample(example) {
   const mode = example.mode || "formula";
@@ -365,22 +367,12 @@ function fillLibrary(query = "") {
     $("examples").append(empty);
   }
 }
-for (const example of EXAMPLES.slice(0, 4)) {
-  const button = document.createElement("button");
-  button.type = "button";
-  const symbol = document.createElement("span");
-  symbol.textContent = example.symbol;
-  symbol.setAttribute("aria-hidden", "true");
-  button.append(symbol, example.title);
-  button.addEventListener("click", () => loadExample(example));
-  $("quick-examples").append(button);
-}
 document.querySelectorAll("[data-library]").forEach((button) =>
   button.addEventListener("click", () => {
     fillLibrary();
     $("example-search").value = "";
     $("library-dialog").showModal();
-    $("example-search").focus();
+    if (!coarse()) $("example-search").focus();
   }),
 );
 $("example-search").addEventListener("input", () =>
@@ -430,7 +422,7 @@ document.querySelectorAll("[data-export]").forEach((button) =>
       if (kind === "source")
         download(
           source.value,
-          "text/plain;charset=utf-8",
+          state.mode === "formula" ? "application/x-tex" : "text/markdown;charset=utf-8",
           name + (state.mode === "formula" ? ".tex" : ".md"),
         );
       if (kind === "mathml")
@@ -519,6 +511,10 @@ $("theme").addEventListener("click", () => {
     /* Session seulement. */
   }
 });
+// Ce qui est inséré dans la formule en cours de saisie reste dans la case ouverte.
+editor.intercept = (value) => previewEditor?.insertText(value) ?? false;
+editor.onMove = () => previewEditor?.target();
+editor.interceptKey = (key) => previewEditor?.key(key) ?? false;
 document.addEventListener("keydown", (event) => {
   if (
     !(event.metaKey || event.ctrlKey) ||

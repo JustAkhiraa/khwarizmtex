@@ -1,9 +1,18 @@
 import { CATALOG, CATEGORIES, searchCatalog, matrixSource } from "./catalog.js";
+import { coarse } from "./layout.js";
 import { createRecents, createFavorites } from "./recents.js";
 const $ = (id) => document.getElementById(id);
-export function bindTools(editor, source, engine, notify, onChange) {
+/** Clavier de calcul : chiffres et lettres courantes, sans ouvrir le clavier du téléphone. */
+const KEYPAD = [
+  ["7"], ["8"], ["9"], ["+"], ["x"], ["("],
+  ["4"], ["5"], ["6"], ["-", "−", "moins"], ["y"], [")"],
+  ["1"], ["2"], ["3"], ["\\times ", "×", "fois"], ["n"], ["a"],
+  ["0"], [",", ",", "virgule"], ["=", "=", "égale"], ["\\div ", "÷", "divisé par"], ["i"], ["b"],
+];
+export function bindTools(editor, source, engine, notify, onChange, getMode) {
   let selection = [0, 0];
-  let category = "structures";
+  const touch = coarse() || matchMedia("(max-width: 899px)").matches;
+  let category = touch ? "keypad" : "structures";
   let limit = 60;
   function remember() {
     selection = [source.selectionStart, source.selectionEnd];
@@ -109,6 +118,18 @@ export function bindTools(editor, source, engine, notify, onChange) {
     button.addEventListener("click", () => use(item));
     return button;
   }
+  function keypad() {
+    return KEYPAD.map(([value, shown = value, label = shown]) => {
+      const key = document.createElement("button");
+      key.type = "button";
+      key.className = "pad-key" + (/^\d$/.test(value) ? " digit" : /^[a-z]$/.test(value) ? " letter" : "");
+      key.textContent = shown;
+      key.setAttribute("aria-label", label);
+      key.addEventListener("mousedown", (event) => event.preventDefault());
+      key.addEventListener("click", () => editor.insert(value));
+      return key;
+    });
+  }
   function use(item) {
     const before = source.value;
     editor.insert(item.source);
@@ -123,7 +144,8 @@ export function bindTools(editor, source, engine, notify, onChange) {
     recentsDirty = false;
     const items = recents.items();
     $("recent-list").replaceChildren(...items.map((item) => card(item, true)));
-    $("recent-row").hidden = items.length === 0;
+    $("recent-row").hidden =
+      items.length === 0 || category === "keypad" || Boolean($("palette-search").value.trim());
   }
   for (const type of ["mouseleave", "focusout"])
     $("recent-row").addEventListener(type, () => {
@@ -136,6 +158,18 @@ export function bindTools(editor, source, engine, notify, onChange) {
   drawRecents();
   function drawPalette() {
     const query = $("palette-search").value.trim();
+    const pad = !query && category === "keypad";
+    $("palette-grid").classList.toggle("keypad", pad);
+    $("builders").hidden = pad || Boolean(query);
+    $("recent-row").hidden = pad || Boolean(query) || recents.items().length === 0;
+    if (pad) {
+      $("palette-grid").replaceChildren(...keypad());
+      $("palette-count").textContent = "";
+      $("palette-more").hidden = true;
+      $("palette-clear").hidden = true;
+      drawCategories();
+      return;
+    }
     const items =
       !query && category === "favorites"
         ? favorites.items()
@@ -148,7 +182,7 @@ export function bindTools(editor, source, engine, notify, onChange) {
       ? items.length + " résultat" + (items.length > 1 ? "s" : "") + " dans tout le catalogue"
       : category === "favorites"
         ? items.length + " favori" + (items.length > 1 ? "s" : "") + " sur 12 · Alt + flèches pour les ranger"
-        : items.length + " choix";
+        : "";
     $("palette-more").hidden = items.length <= limit;
     if (!items.length) {
       const p = document.createElement("p");
@@ -159,7 +193,6 @@ export function bindTools(editor, source, engine, notify, onChange) {
           : "Aucun résultat. Essayez un nom (inférieur, racine), une commande ou un symbole (≤).";
       $("palette-grid").append(p);
     }
-    $("science-note").hidden = category !== "chemistry" || Boolean(query);
     drawCategories();
   }
   function drawCategories() {
@@ -173,9 +206,11 @@ export function bindTools(editor, source, engine, notify, onChange) {
       });
   }
   for (const group of [
+    { id: "keypad", label: "123" },
+    ...CATEGORIES.slice(0, 1),
     { id: "favorites", label: "★ Favoris" },
     { id: "all", label: "Tout (" + CATALOG.length + ")" },
-    ...CATEGORIES,
+    ...CATEGORIES.slice(1),
   ]) {
     const button = document.createElement("button");
     button.type = "button";
@@ -186,21 +221,49 @@ export function bindTools(editor, source, engine, notify, onChange) {
       category = group.id;
       limit = 60;
       $("palette-search").value = "";
+      searching(false);
+      panel(true);
       drawPalette();
+      $("palette-panel").scrollTop = 0;
+      button.scrollIntoView({ block: "nearest", inline: "center" });
     });
     $("palette-categories").append(button);
   }
-  let drawn = false;
-  $("palette-open").addEventListener("click", () => {
-    const open = $("palette-panel").hidden;
+  const narrow = matchMedia("(max-width: 899px)");
+  function panel(open) {
     $("palette-panel").hidden = !open;
     $("palette-open").setAttribute("aria-expanded", String(open));
-    $("palette-open").textContent = open ? "Réduire les symboles" : "Tous les symboles";
-    if (open && !drawn) {
-      drawn = true;
+  }
+  function searching(open) {
+    $("palette-search-row").hidden = !open;
+    $("search-open").setAttribute("aria-expanded", String(open));
+    if (!open && $("palette-search").value) {
+      $("palette-search").value = "";
       drawPalette();
     }
+  }
+  $("palette-open").addEventListener("mousedown", (event) => event.preventDefault());
+  $("palette-open").addEventListener("click", () => {
+    // Le clavier du téléphone prend la place des symboles : on le ferme d'abord.
+    if (document.documentElement.classList.contains("keyboard-open")) {
+      document.activeElement.blur();
+      panel(true);
+    } else panel($("palette-panel").hidden);
   });
+  $("search-open").addEventListener("click", () => {
+    const open = $("palette-search-row").hidden;
+    panel(true);
+    searching(open);
+    if (open) $("palette-search").focus({ preventScroll: true });
+  });
+  function modeChanged() {
+    const isDocument = getMode() === "document";
+    // Un cours s'écrit surtout en texte : le clavier de calcul reste à la formule.
+    $("palette-categories").querySelector('[data-category="keypad"]').hidden = isDocument || !touch;
+    if (isDocument && category === "keypad") category = "structures";
+    panel(!(isDocument && narrow.matches));
+    drawPalette();
+  }
   // Échap ramène à la source, sans fermer le panneau.
   $("palette-panel").addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
@@ -318,20 +381,11 @@ export function bindTools(editor, source, engine, notify, onChange) {
       night: "#1a2038",
     };
     $("preview-surface").style.backgroundColor = colors[value] || "";
-    $("preview-surface").style.backgroundImage = value === "auto" ? "" : "none";
+    $("preview-pane").style.backgroundColor = colors[value] || "";
     $("preview").style.setProperty(
       "--preview-ink",
       value === "auto" ? "inherit" : value === "night" ? "#f6f6ff" : "#222238",
     );
-  });
-  // Le menu Plus se referme dès qu'on clique ailleurs ou qu'on presse Échap.
-  document.addEventListener("click", (event) => {
-    if (!$("more-menu").contains(event.target)) $("more-menu").open = false;
-  });
-  $("more-menu").addEventListener("keydown", (event) => {
-    if (event.key !== "Escape" || !$("more-menu").open) return;
-    $("more-menu").open = false;
-    $("more-menu").querySelector("summary").focus();
   });
   $("join-lines").addEventListener("click", () => {
     // Ne touche qu'aux retours de ligne réels, jamais aux séparateurs \\.
@@ -341,10 +395,10 @@ export function bindTools(editor, source, engine, notify, onChange) {
         "Remplacer les retours de ligne par des espaces ? En mode Document, cela modifie aussi la structure du texte. Vous pourrez annuler.",
       )
     ) {
-      $("more-menu").open = false;
       source.value = source.value.replace(/\r?\n/g, " ");
       onChange(false);
       source.focus();
     }
   });
+  return { modeChanged };
 }

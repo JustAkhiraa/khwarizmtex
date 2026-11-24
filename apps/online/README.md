@@ -29,7 +29,7 @@ et l'import validé demande confirmation avant remplacement.
 
 ## Palette et présentation
 
-**Tous les symboles** ouvre 379 modèles recherchables dans 15 catégories :
+Le **clavier de maths** contient 379 modèles recherchables dans 15 catégories :
 structures, grec, relations, ensembles/logique, flèches, fonctions, opérateurs,
 accents/vecteurs, délimiteurs, styles, probabilités/statistiques, analyse,
 algèbre/géométrie, physique et chimie.
@@ -37,7 +37,7 @@ Une sélection remplace le premier carré du modèle ; les autres carrés resten
 à compléter. Dans un document, les insertions hors formule sont entourées de `$`.
 
 **Matrices** construit de 1 à 6 lignes/colonnes avec six types de délimiteurs.
-**Présentation** insère une couleur et règle la taille/fond de l’aperçu
+**Couleur, taille** insère une couleur et règle la taille/fond de l’aperçu
 pour la session. Ces deux derniers réglages ne sont pas sauvegardés.
 Les modèles scientifiques utilisent la notation standard, sans mhchem ni siunitx.
 

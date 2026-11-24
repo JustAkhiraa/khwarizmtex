@@ -113,12 +113,35 @@ export function removeAtom(model, index) {
     }));
 }
 
+/** Cycle accroché à un atome, du côté le plus dégagé. */
+export function ringOnAtom(model, size, index, alternate) {
+  const atom = model.atoms[index];
+  const spot = freeSpot(model, index);
+  const angle = Math.atan2(spot.y - atom.y, spot.x - atom.x);
+  const radius = 1 / (2 * Math.sin(Math.PI / size));
+  return addRing(model, size, atom.x + radius * Math.cos(angle), atom.y + radius * Math.sin(angle), alternate, angle + Math.PI);
+}
+
+/** Cycle accolé à une liaison, du côté où il y a le moins d'atomes. */
+export function ringOnBond(model, size, index, alternate) {
+  const a = model.atoms[model.bonds[index].from];
+  const b = model.atoms[model.bonds[index].to];
+  const length = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+  const apothem = 1 / (2 * Math.tan(Math.PI / size));
+  const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  const sides = [1, -1].map((s) => ({ x: mid.x - (s * (b.y - a.y) * apothem) / length, y: mid.y + (s * (b.x - a.x) * apothem) / length }));
+  const crowd = (c) => model.atoms.filter((t) => Math.hypot(t.x - c.x, t.y - c.y) < 1.2).length;
+  const center = crowd(sides[0]) <= crowd(sides[1]) ? sides[0] : sides[1];
+  const angle = Math.atan2(a.y - center.y, a.x - center.x);
+  return addRing(model, size, center.x, center.y, alternate, angle);
+}
+
 /** Cycle régulier centré en (x, y) ; `alternate` : une liaison double sur deux. */
-export function addRing(model, size, x, y, alternate) {
+export function addRing(model, size, x, y, alternate, start = -Math.PI / 2) {
   const radius = 1 / (2 * Math.sin(Math.PI / size));
   const ids = [];
   for (let k = 0; k < size; k++) {
-    const angle = -Math.PI / 2 + (2 * Math.PI * k) / size;
+    const angle = start + (2 * Math.PI * k) / size;
     const px = x + radius * Math.cos(angle);
     const py = y + radius * Math.sin(angle);
     // Un sommet posé sur un atome existant le réutilise : les cycles s'accolent.

@@ -40,7 +40,7 @@ test("palette : recherche, sélection, insertion et annulation", async ({
 }, info) => {
   await page.locator("#source").fill("ab");
   await page.locator("#source").selectText();
-  await page.locator("#palette-open").click();
+  await page.locator("#search-open").click();
   await expect(page.locator("#palette-categories")).toContainText("Tout (379)");
   await page.locator("#palette-search").fill("chevrons");
   await expect(page.locator("#palette-grid .symbol-card")).toHaveCount(1);
@@ -73,7 +73,6 @@ test("palette ouverte : cinq insertions de suite et récents conservés", async 
   page,
 }) => {
   await page.locator("#source").fill("");
-  await page.locator("#palette-open").click();
   await page.locator("[data-category=greek]").click();
   for (const name of ["alpha", "beta", "gamma", "delta", "epsilon"])
     await page
@@ -90,6 +89,7 @@ test("palette ouverte : cinq insertions de suite et récents conservés", async 
     "epsilon",
   );
   await page.reload();
+  await page.locator("[data-category=structures]").click();
   await expect(page.locator("#recent-row")).toBeVisible();
   await expect(page.locator("#recent-list button")).toHaveCount(5);
 });
@@ -108,8 +108,7 @@ test("insertion Document : respecte les blocs et les dollars échappés", async 
       const position = element.value.lastIndexOf("x");
       element.setSelectionRange(position, position + 1);
     });
-    if (await page.locator("#palette-panel").isHidden())
-      await page.locator("#palette-open").click();
+    await page.locator("[data-category=structures]").click();
     await page
       .locator("#palette-grid")
       .getByRole("button", { name: "Racine carrée", exact: true })
@@ -137,6 +136,7 @@ test("matrice personnalisée, validation des cellules et couleur", async ({
   page,
 }, info) => {
   await page.locator("#source").fill("");
+  await page.locator("[data-category=structures]").click();
   await page.locator("#matrix-open").click();
   await page.locator("#matrix-rows").selectOption("3");
   await page.locator("#matrix-columns").selectOption("2");
@@ -155,6 +155,7 @@ test("matrice personnalisée, validation des cellules et couleur", async ({
   );
   await expect(page.locator("#diagnostics")).toBeHidden();
   await page.locator("#source").selectText();
+  await page.locator("[data-category=structures]").click();
   await page.locator("#appearance-open").click();
   await page.locator("#formula-color").fill("#123456");
   await page.locator("#apply-color").click();
@@ -167,6 +168,7 @@ test("matrice personnalisée, validation des cellules et couleur", async ({
 test("le fond sombre préserve la lisibilité du document et de l’impression", async ({
   page,
 }) => {
+  await page.locator("[data-category=structures]").click();
   await page.locator("#appearance-open").click();
   await page.locator("#preview-background").selectOption("night");
   await page.getByLabel("Fermer la présentation", { exact: true }).click();
@@ -177,7 +179,7 @@ test("le fond sombre préserve la lisibilité du document et de l’impression",
   await page.locator("[data-mode=document]").click();
   await expect(page.locator("#preview .khw").first()).toHaveCSS(
     "color",
-    "rgb(36, 37, 61)",
+    "rgb(29, 27, 46)",
   );
   await page.emulateMedia({ media: "print" });
   await expect(page.locator("#preview .khw").first()).toHaveCSS(
@@ -191,6 +193,7 @@ test("import Markdown : aperçu, confirmation, annulation et formules préservé
 }) => {
   await page.locator("[data-mode=document]").click();
   await page.locator("#source").fill("Mon brouillon");
+  await page.locator("#menu-open").click();
   await page.locator("#document-import-open").click();
   const content = "# Cours\n\nÉnergie $E=mc^2$.\n\n$$\n\\frac{a}{b}\n$$";
   await page.locator("#document-file").setInputFiles({
@@ -205,6 +208,7 @@ test("import Markdown : aperçu, confirmation, annulation et formules préservé
   await expect(page.locator("#preview .khw")).toHaveCount(2);
   await page.locator("#undo").click();
   await expect(page.locator("#source")).toHaveValue("Mon brouillon");
+  await page.locator("#menu-open").click();
   await page.locator("#document-import-open").click();
   await page.locator("#document-file").setInputFiles({
     name: "x.txt",
@@ -222,6 +226,7 @@ test("PDF : extrait localement, avertit sur les formules et refuse une page sans
   const requests: string[] = [];
   page.on("request", (request) => requests.push(request.url()));
   await page.locator("#source").fill("brouillon");
+  await page.locator("#menu-open").click();
   await page.locator("#document-import-open").click();
   await page.locator("#document-file").setInputFiles({
     name: "physique.pdf",
@@ -241,6 +246,7 @@ test("PDF : extrait localement, avertit sur les formules et refuse une page sans
   await expect(page.locator("#source")).toHaveValue(/## Page 1/);
   await page.locator("[data-mode=formula]").click();
   await expect(page.locator("#source")).toHaveValue("brouillon");
+  await page.locator("#menu-open").click();
   await page.locator("#document-import-open").click();
   await page.locator("#document-file").setInputFiles({
     name: "scan.pdf",

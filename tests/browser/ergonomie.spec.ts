@@ -65,7 +65,7 @@ test("source : Tab sélectionne le □ suivant", async ({ page }) => {
 });
 
 test("palette : symbole, synonyme et favoris conservés", async ({ page }) => {
-  await page.locator("#palette-open").click();
+  await page.locator("#search-open").click();
   await page.fill("#palette-search", "≤");
   await expect(page.locator('#palette-grid [data-tool="relations:\\\\leq"]')).toBeVisible();
   await page.fill("#palette-search", "ensemble réel");
@@ -78,7 +78,6 @@ test("palette : symbole, synonyme et favoris conservés", async ({ page }) => {
   await page.locator('#palette-categories [data-category="favorites"]').click();
   await expect(page.locator("#palette-grid .symbol-card")).toHaveCount(1);
   await page.reload();
-  await page.locator("#palette-open").click();
   await page.locator('#palette-categories [data-category="favorites"]').click();
   await expect(page.locator("#palette-grid .symbol-card")).toHaveAttribute(
     "aria-label",
@@ -86,9 +85,9 @@ test("palette : symbole, synonyme et favoris conservés", async ({ page }) => {
   );
 });
 
-test("menu Plus : Joindre les lignes reste accessible", async ({ page }) => {
+test("menu : Joindre les lignes reste accessible", async ({ page }) => {
   await expect(page.locator("#join-lines")).toBeHidden();
-  await page.locator("#more-menu summary").click();
+  await page.locator("#menu-open").click();
   await expect(page.locator("#join-lines")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.locator("#join-lines")).toBeHidden();
@@ -161,12 +160,13 @@ test("aperçu : deux valeurs égales dans un ordre différent ne sont jamais con
   await page.fill("#source", src);
   await page.locator("#preview .khw-brace-label").click();
   await expect(page.locator("#inplace-input")).toBeHidden();
-  await expect(page.locator("#toast")).toContainText("à gauche");
+  await expect(page.locator("#toast")).toContainText("dans le code");
   await expect(page.locator("#source")).toHaveValue(src);
 });
 
 test("molécule : dessiner, insérer, puis rouvrir celle sous le curseur", async ({ page }) => {
   await page.fill("#source", "");
+  await page.locator("[data-category=structures]").click();
   await page.locator("#molecule-open").click();
   const board = page.locator("#molecule-board");
   const box = (await board.boundingBox())!;
@@ -178,9 +178,9 @@ test("molécule : dessiner, insérer, puis rouvrir celle sous le curseur", async
   await page.mouse.move(x + 46, y, { steps: 3 });
   await page.mouse.up();
   await expect(page.locator("#molecule-source")).toHaveValue(/C 0 [-\d.]+, C 1 [-\d.]+ \| 1-2/);
-  await page.getByRole("button", { name: "Oxygène" }).click();
+  await page.locator("#molecule-tools [data-value=O]").click();
   await page.mouse.click(x + 45, y);
-  await page.getByRole("button", { name: "Liaison double" }).click();
+  await page.locator('#molecule-bonds [data-mark="="]').click();
   await page.mouse.click(x + 22, y);
   await expect(page.locator("#molecule-source")).toHaveValue(/O 1 [-\d.]+ \| 1=2/);
   await page.locator("#molecule-undo").click();
@@ -267,4 +267,58 @@ test("aperçu : une somme haute n'est jamais coupée, même avec l'astuce", asyn
   await expect
     .poll(() => page.locator("#preview-surface").evaluate((el) => el.scrollHeight - el.clientHeight))
     .toBeLessThanOrEqual(1);
+});
+
+test("téléphone : formule, code et clavier tiennent dans l'écran, sans défilement", async ({ page }) => {
+  for (const [width, height] of [[320, 568], [390, 664], [430, 800], [740, 340], [844, 390], [768, 1024], [1280, 720]]) {
+    await page.setViewportSize({ width, height });
+    await page.waitForTimeout(150);
+    for (const id of ["#preview", "#source", "#math-toolbar", "#export-open", "#menu-open"]) {
+      const box = (await page.locator(id).boundingBox())!;
+      expect(box.x, id + width).toBeGreaterThanOrEqual(-1);
+      expect(box.y + Math.min(box.height, 30), id + width).toBeLessThanOrEqual(height + 1);
+    }
+    expect(await page.evaluate(() => [document.documentElement.scrollWidth - innerWidth, document.documentElement.scrollHeight - innerHeight].every((v) => v <= 0))).toBe(true);
+    expect((await page.locator("#preview-surface").boundingBox())!.height, "aperçu " + width + "x" + height).toBeGreaterThan(80);
+  }
+});
+
+test("clavier de maths : écrire une formule entière sans clavier, effacer et avancer", async ({ page }) => {
+  await page.fill("#source", "");
+  const key = (name: string) => page.locator("#math-toolbar").getByRole("button", { name, exact: true }).click();
+  await key("Fraction");
+  await expect(page.locator("#preview .khw-target")).toHaveCount(1);
+  await key("Pi");
+  await page.locator("#key-next").click();
+  await key("Racine");
+  await key("Infini");
+  await expect(page.locator("#source")).toHaveValue("\\frac{\\pi}{\\sqrt{\\infty}}");
+  // Vider une case la rend de nouveau disponible.
+  await page.locator("#key-back").click();
+  await expect(page.locator("#source")).toHaveValue("\\frac{\\pi}{\\sqrt{□}}");
+  await expect(page.locator("#diagnostics")).toBeHidden();
+});
+
+test("clavier de maths : une touche remplit la case ouverte dans la formule", async ({ page }) => {
+  await page.fill("#source", "x^{n}");
+  await expect(page.locator("#preview [data-slot]")).toHaveCount(1);
+  await page.locator("#preview [data-slot]").click();
+  await page.locator("#math-toolbar").getByRole("button", { name: "Infini", exact: true }).click();
+  await expect(page.locator("#source")).toHaveValue("x^{\\infty}");
+  await expect(page.locator("#inplace-input")).toBeFocused();
+});
+
+test("molécule : un cycle s'accroche à une liaison sans superposer les atomes", async ({ page }) => {
+  await page.locator("[data-category=structures]").click();
+  await page.locator("#molecule-open").click();
+  await page.locator("#molecule-template").selectOption("benzene");
+  await page.locator('#molecule-tools [data-size="5"]').click();
+  const box = (await page.locator("#molecule-board").boundingBox())!;
+  // Milieu de la liaison verticale de droite.
+  await page.mouse.click(box.x + box.width / 2 + 39, box.y + box.height / 2);
+  const value = await page.locator("#molecule-source").inputValue();
+  const atoms = [...value.matchAll(/C (-?[\d.]+) (-?[\d.]+)/g)].map((m) => [Number(m[1]), Number(m[2])]);
+  expect(atoms.length).toBe(9);
+  for (let i = 0; i < 9; i++)
+    for (let j = 0; j < i; j++) expect(Math.hypot(atoms[i][0] - atoms[j][0], atoms[i][1] - atoms[j][1])).toBeGreaterThan(0.9);
 });
