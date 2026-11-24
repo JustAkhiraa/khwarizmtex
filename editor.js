@@ -53,10 +53,16 @@ export function bindEditor(
     close();
     onChange(false);
   }
-  /** Au doigt, le clavier du téléphone ne s'ouvre que si l'on écrivait déjà. */
+  /** Au doigt, le curseur se montre sans ouvrir le clavier du téléphone. */
   function focusSource() {
-    if (!coarse() || document.activeElement === source) source.focus({ preventScroll: true });
+    if (coarse() && document.activeElement !== source) source.inputMode = "none";
+    source.focus({ preventScroll: true });
   }
+  // Toucher le code, lui, rend le clavier du téléphone.
+  source.addEventListener("pointerdown", () => {
+    if (source.inputMode === "none") source.blur();
+  });
+  source.addEventListener("blur", () => (source.inputMode = ""));
   function accept(index) {
     if (prefix && matches[index])
       replace(matches[index][1], prefix.start, source.selectionStart, false);
