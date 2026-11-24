@@ -4,9 +4,9 @@
     <meta charset="utf-8" />
     <meta
       name="viewport"
-      content="width=device-width,initial-scale=1,viewport-fit=cover"
+      content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content"
     />
-    <meta name="theme-color" content="#15162c" />
+    <meta name="theme-color" content="#f3f2f8" />
     <meta
       name="description"
       content="Un atelier de formules et de documents mathématiques. Local, sans compte et sans suivi."
@@ -18,347 +18,109 @@
     <link rel="stylesheet" href="tools.css" />
   </head>
   <body>
-    <div class="shell">
-      <aside class="sidebar" aria-label="Atelier">
-        <a class="brand" href="./" aria-label="KhwarizmTeX Online, accueil"
-          ><span class="mark" aria-hidden="true">𝒦</span
-          ><span
-            >KhwarizmTeX<small>ONLINE · ATELIER MATHÉMATIQUE</small></span
-          ></a
-        >
-        <p class="nav-label">VOTRE ESPACE</p>
-        <button class="nav-item selected" type="button" id="atelier">
-          <span aria-hidden="true">▧</span> Mon atelier
-        </button>
-        <button class="nav-item" type="button" data-library>
-          <span aria-hidden="true">▦</span> Bibliothèque
-          <span class="badge">12</span>
-        </button>
-        <button class="nav-item" type="button" data-help>
-          <span aria-hidden="true">?</span> Guide express
-        </button>
-        <div class="sidebar-divider"></div>
-        <p class="nav-label">POUR COMMENCER</p>
-        <div class="quick-examples" id="quick-examples"></div>
-        <div class="sidebar-bottom">
-          <div class="privacy-icon" aria-hidden="true">◇</div>
-          <strong>Vos idées restent à vous.</strong>
-          <p>Sans compte. Sans suivi.<br />Sauvegardé dans ce navigateur.</p>
-          <span class="version">KhwarizmTeX · première édition</span>
+    <svg class="sprite" aria-hidden="true"><symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></symbol><symbol id="i-out" viewBox="0 0 24 24"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></symbol><symbol id="i-in" viewBox="0 0 24 24"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></symbol><symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"/></symbol><symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5M20 9H10a6 6 0 0 0 0 12h3"/></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V5a2 2 0 0 1 2-2h9a1 1 0 0 1 1 1v1"/></symbol><symbol id="i-back" viewBox="0 0 24 24"><path d="M9 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6-7zM12 9.5l5 5m0-5-5 5"/></symbol><symbol id="i-next" viewBox="0 0 24 24"><path d="M4 12h12m0 0-5-5m5 5-5 5M20 5v14"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></symbol><symbol id="i-keys" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M8 14h8"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 2-2h12v15H7a2 2 0 0 0-2 2zm0 0v15a1 1 0 0 0 1 1h13"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 6 .4l3-3a4 4 0 0 0-5.700-5.700L12 7m2 3a4 4 0 0 0-6-.4l-3 3A4 4 0 0 0 10.700 18.300L12 17"/></symbol><symbol id="i-theme" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.500 9.500a2.500 2.500 0 1 1 3.500 2.300c-.6.300-1 .8-1 1.700M12 17h.01"/></symbol><symbol id="i-join" viewBox="0 0 24 24"><path d="M4 6h16M4 12h11a3 3 0 0 1 0 6h-4m0 0 2-2m-2 2 2 2"/></symbol><symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2 2 0 0 0-4-4L4 16z"/></symbol><symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol><symbol id="i-matrix" viewBox="0 0 24 24"><path d="M7 4H4v16h3M17 4h3v16h-3M9 9h.01M15 9h.01M9 15h.01M15 15h.01"/></symbol><symbol id="i-molecule" viewBox="0 0 24 24"><path d="m12 3 7.500 4.300v8.700L12 20.500 4.500 16V7.300zM8 9.500v5M12 17l4.300-2.500M16 9l-4-2.300"/></symbol><symbol id="i-color" viewBox="0 0 24 24"><path d="M12 3s6 6.500 6 11a6 6 0 0 1-12 0c0-4.500 6-11 6-11z"/><path d="M9 14.500a3 3 0 0 0 3 3"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M6 12h12M12 6v12"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.500 4.500 4.500L19 7"/></symbol></svg>
+    <div class="shell" id="shell">
+      <header class="topbar">
+        <button type="button" class="bar-button" id="menu-open" aria-expanded="false" aria-controls="menu"><svg class="icon" aria-hidden="true"><use href="#i-menu" /></svg><span class="wide">Menu</span></button>
+        <a class="brand" href="./" aria-label="KhwarizmTeX Online, accueil"><span aria-hidden="true">𝒦</span> KhwarizmTeX</a>
+        <div class="mode-switch" role="group" aria-label="Que voulez-vous écrire ?">
+          <button type="button" data-mode="formula" aria-pressed="true">Formule</button>
+          <button type="button" data-mode="document" aria-pressed="false">Document</button>
         </div>
-      </aside>
-      <div class="main-area">
-        <header class="topbar">
-          <a class="mobile-brand" href="./" aria-label="KhwarizmTeX Online"
-            >𝒦 <span>KhwarizmTeX</span></a
-          >
-          <span class="breadcrumb"
-            >Mon atelier <span aria-hidden="true">/</span>
-            <strong id="breadcrumb-mode">Formule</strong></span
-          >
-          <div class="top-actions">
-            <span class="save-status" id="save-status" role="status">Prêt</span
-            ><button
-              type="button"
-              class="icon-button mobile-only"
-              data-library
-              aria-label="Bibliothèque d’exemples"
-            >
-              ▦</button
-            ><button
-              type="button"
-              class="icon-button"
-              id="theme"
-              aria-label="Changer de thème"
-              title="Changer de thème"
-            >
-              ◐</button
-            ><button
-              type="button"
-              class="icon-button mobile-only"
-              data-help
-              aria-label="Ouvrir le guide"
-            >
-              ?
-            </button>
+        <div class="top-end">
+          <button type="button" class="bar-button wide" data-library><svg class="icon" aria-hidden="true"><use href="#i-book" /></svg><span>Exemples</span></button>
+          <button type="button" class="bar-button primary" id="export-open"><svg class="icon" aria-hidden="true"><use href="#i-out" /></svg><span class="wide">Exporter</span><span class="sr-only narrow">Exporter</span></button>
+        </div>
+      </header>
+      <div class="menu-veil" id="menu-veil" hidden></div>
+      <nav class="menu" id="menu" aria-label="Menu" hidden>
+        <label class="menu-name" for="title">Nom du projet<input id="title" maxlength="100" value="Ma première formule" autocomplete="off" /></label>
+        <button type="button" data-library><svg class="icon" aria-hidden="true"><use href="#i-book" /></svg><span><b>Exemples</b><small>Partir d’une formule ou d’un cours tout prêt</small></span></button>
+        <button type="button" id="document-import-open"><svg class="icon" aria-hidden="true"><use href="#i-in" /></svg><span><b>Importer</b><small>Markdown, texte, PDF, sauvegarde</small></span></button>
+        <button type="button" id="share"><svg class="icon" aria-hidden="true"><use href="#i-link" /></svg><span><b>Copier un lien</b><small>Pour envoyer cette formule à quelqu’un</small></span></button>
+        <button type="button" id="join-lines"><svg class="icon" aria-hidden="true"><use href="#i-join" /></svg><span><b>Joindre les lignes</b><small>Remplacer les retours de ligne par des espaces</small></span></button>
+        <button type="button" id="theme"><svg class="icon" aria-hidden="true"><use href="#i-theme" /></svg><span><b>Thème clair ou sombre</b></span></button>
+        <button type="button" data-help><svg class="icon" aria-hidden="true"><use href="#i-help" /></svg><span><b>Aide</b><small>Le guide et les raccourcis</small></span></button>
+        <p>Tout reste dans ce navigateur : ni compte, ni suivi.</p>
+      </nav>
+      <main class="workspace" id="workspace">
+        <section id="startup" class="startup" role="alert">
+          Chargement de l’atelier… Si ce message reste affiché, lancez <code>npm run online</code> et ouvrez l’adresse locale indiquée.<noscript> JavaScript est nécessaire pour cet éditeur.</noscript>
+        </section>
+        <section class="preview-pane" id="preview-pane" aria-labelledby="preview-heading">
+          <h1 class="sr-only" id="preview-heading">Aperçu de la formule</h1>
+          <div class="preview-surface" id="preview-surface"><div id="preview" class="formula-preview"></div></div>
+          <div class="preview-tools">
+            <div class="zoom-controls" role="group" aria-label="Taille de l’aperçu">
+              <button type="button" class="icon-button" id="zoom-out" aria-label="Réduire l’aperçu"><svg class="icon" aria-hidden="true"><use href="#i-minus" /></svg></button><output id="zoom-value">100 %</output><button type="button" class="icon-button" id="zoom-in" aria-label="Agrandir l’aperçu"><svg class="icon" aria-hidden="true"><use href="#i-plus" /></svg></button>
+            </div>
+            <span class="complete-badge" id="complete-badge" role="status" hidden>✓ Formule complète</span>
+            <button type="button" class="pill-button" id="preview-edit" title="Ou touchez directement une partie de la formule" hidden><svg class="icon" aria-hidden="true"><use href="#i-edit" /></svg><span>Modifier</span></button>
           </div>
-        </header>
-        <main>
-          <section id="startup" class="startup" role="alert">
-            Chargement de l’atelier… Si ce message reste affiché, lancez
-            <code>npm run online</code> et ouvrez l’adresse locale
-            indiquée.<noscript>
-              JavaScript est nécessaire pour cet éditeur.</noscript
-            >
+          <div class="coach" id="coach" hidden>
+            <p>Touchez un nombre pour le changer.</p>
+            <button type="button" class="icon-button" id="coach-close" aria-label="Fermer l’astuce"><svg class="icon" aria-hidden="true"><use href="#i-close" /></svg></button>
+          </div>
+          <span class="sr-only" id="render-status" role="status">Prêt à écrire</span>
+        </section>
+        <section class="diagnostics" id="diagnostics" aria-labelledby="diagnostics-heading" hidden>
+          <h2 id="diagnostics-heading">À vérifier</h2>
+          <ul id="error-list"></ul>
+        </section>
+        <section class="editor-pane" aria-labelledby="editor-heading">
+          <div class="pane-heading">
+            <h2 id="editor-heading">Code</h2>
+            <span class="save-status" id="save-status" role="status">Prêt</span>
+            <span class="character-count" id="character-count">0 car.</span>
+            <button type="button" class="icon-button" id="undo" aria-label="Annuler" title="Annuler (⌘/Ctrl Z)"><svg class="icon" aria-hidden="true"><use href="#i-undo" /></svg></button>
+            <button type="button" class="icon-button" id="redo" aria-label="Rétablir" title="Rétablir (⌘/Ctrl Maj Z)"><svg class="icon" aria-hidden="true"><use href="#i-redo" /></svg></button>
+            <button type="button" class="pill-button" id="copy"><svg class="icon" aria-hidden="true"><use href="#i-copy" /></svg><span id="copy-label">Copier</span></button>
+          </div>
+          <div class="source-wrap">
+            <label for="source" class="sr-only">Code source</label>
+            <textarea id="source" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-describedby="source-help" maxlength="50000"></textarea>
+            <ul class="suggestions" id="suggestions" aria-label="Suggestions de commandes" hidden></ul>
+          </div>
+          <p class="source-help" id="source-help"></p>
+        </section>
+        <section class="dock" aria-label="Clavier de maths">
+          <div class="quick-row">
+            <div class="math-toolbar" role="group" aria-label="Insérer une structure mathématique" id="math-toolbar"></div>
+            <button type="button" class="key-button" id="key-next" aria-label="Aller à la case suivante" title="Case suivante"><svg class="icon" aria-hidden="true"><use href="#i-next" /></svg></button>
+            <button type="button" class="key-button" id="key-back" aria-label="Effacer" title="Effacer"><svg class="icon" aria-hidden="true"><use href="#i-back" /></svg></button>
+          </div>
+          <p class="sr-only" id="tool-status" role="status" aria-live="polite"></p>
+          <div class="tabs-row">
+            <button type="button" class="key-button" id="palette-open" aria-expanded="true" aria-controls="palette-panel" aria-label="Tous les symboles" title="Montrer ou cacher les symboles"><svg class="icon" aria-hidden="true"><use href="#i-keys" /></svg></button>
+            <button type="button" class="key-button" id="search-open" aria-expanded="false" aria-controls="palette-search-row" aria-label="Chercher un symbole" title="Chercher un symbole"><svg class="icon" aria-hidden="true"><use href="#i-search" /></svg></button>
+            <div id="palette-categories" class="category-tabs" role="group" aria-label="Familles de symboles"></div>
+          </div>
+          <section class="palette-panel" id="palette-panel" aria-label="Symboles et formules">
+            <div class="palette-search-row" id="palette-search-row" hidden>
+              <label class="sr-only" for="palette-search">Rechercher un symbole</label>
+              <input id="palette-search" class="search" type="search" placeholder="Racine, alpha, flèche, ≤…" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" />
+              <button type="button" class="icon-button" id="palette-clear" aria-label="Effacer la recherche" hidden><svg class="icon" aria-hidden="true"><use href="#i-close" /></svg></button>
+            </div>
+            <div class="builders" id="builders" role="group" aria-label="Assistants">
+              <button type="button" id="matrix-open"><svg class="icon" aria-hidden="true"><use href="#i-matrix" /></svg><span>Matrice</span></button>
+              <button type="button" id="molecule-open"><svg class="icon" aria-hidden="true"><use href="#i-molecule" /></svg><span>Molécule</span></button>
+              <button type="button" id="appearance-open"><svg class="icon" aria-hidden="true"><use href="#i-color" /></svg><span>Couleur, taille</span></button>
+            </div>
+            <div class="recent-row" id="recent-row" hidden>
+              <span class="recent-label" id="recent-label">Récents</span>
+              <div class="recent-list" id="recent-list" role="group" aria-labelledby="recent-label"></div>
+            </div>
+            <p id="palette-count" class="palette-count" role="status"></p>
+            <div id="palette-grid" class="symbol-grid"></div>
+            <button id="palette-more" class="button" type="button">Afficher davantage</button>
           </section>
-          <div class="workspace-heading">
-            <div>
-              <p class="eyebrow">DE L’IDÉE À L’ÉQUATION</p>
-              <h1>Les idées prennent forme.</h1>
-              <p class="intro">
-                Écrivez. Explorez. Rendez les maths plus claires.
-              </p>
-            </div>
-            <button type="button" class="button quiet" data-library>
-              <span aria-hidden="true">▦</span> Exemples
-            </button>
-          </div>
-          <div class="workspace-controls">
-            <div
-              class="mode-switch"
-              role="group"
-              aria-label="Mode de l’atelier"
-            >
-              <button type="button" data-mode="formula" aria-pressed="true">
-                ƒ <span>Formule</span></button
-              ><button type="button" data-mode="document" aria-pressed="false">
-                ▤ <span>Document</span>
-              </button>
-            </div>
-            <div class="document-name">
-              <label class="sr-only" for="title">Titre du projet</label
-              ><input
-                id="title"
-                maxlength="100"
-                value="Ma première formule"
-                autocomplete="off"
-              />
-            </div>
-            <button type="button" class="button quiet" id="share">
-              Partager
-            </button>
-            <button
-              type="button"
-              class="button quiet"
-              id="document-import-open"
-            >
-              Importer
-            </button>
-            <button type="button" class="button primary" id="export-open">
-              Exporter
-            </button>
-          </div>
-          <div class="workspace" id="workspace">
-            <section class="editor-pane" aria-labelledby="editor-heading">
-              <div class="pane-heading">
-                <h2 id="editor-heading">
-                  <span class="pane-dot" aria-hidden="true"></span> Éditeur
-                  <span class="pill" id="language">Formule</span>
-                </h2>
-                <div class="history-actions">
-                  <button
-                    type="button"
-                    class="icon-button"
-                    id="undo"
-                    aria-label="Annuler"
-                    title="Annuler (⌘/Ctrl Z)"
-                  >
-                    ↶</button
-                  ><button
-                    type="button"
-                    class="icon-button"
-                    id="redo"
-                    aria-label="Rétablir"
-                    title="Rétablir (⌘/Ctrl Maj Z)"
-                  >
-                    ↷
-                  </button>
-                </div>
-              </div>
-              <div
-                class="math-toolbar"
-                role="group"
-                aria-label="Insérer une structure mathématique"
-                id="math-toolbar"
-              ></div>
-              <div
-                class="extended-tools"
-                role="group"
-                aria-label="Outils mathématiques avancés"
-              >
-                <button
-                  type="button"
-                  id="palette-open"
-                  aria-expanded="false"
-                  aria-controls="palette-panel"
-                >
-                  Tous les symboles
-                </button>
-                <button type="button" id="matrix-open">Matrices</button>
-                <button type="button" id="molecule-open">Molécules</button>
-                <button type="button" id="appearance-open">Présentation</button>
-                <details class="more-menu" id="more-menu">
-                  <summary>Plus</summary>
-                  <div class="more-list">
-                    <button
-                      type="button"
-                      id="join-lines"
-                      title="Remplacer les retours de ligne par des espaces"
-                    >
-                      Joindre les lignes
-                    </button>
-                  </div>
-                </details>
-              </div>
-              <p class="sr-only" id="tool-status" role="status" aria-live="polite"></p>
-              <div class="recent-row" id="recent-row" hidden>
-                <span class="recent-label" id="recent-label">Récents</span>
-                <div
-                  class="recent-list"
-                  id="recent-list"
-                  role="group"
-                  aria-labelledby="recent-label"
-                ></div>
-              </div>
-              <section
-                class="palette-panel"
-                id="palette-panel"
-                aria-label="Symboles et formules"
-                hidden
-              >
-                <div class="palette-search-row">
-                  <label class="sr-only" for="palette-search"
-                    >Rechercher un symbole</label
-                  ><input
-                    id="palette-search"
-                    class="search"
-                    type="search"
-                    placeholder="Chercher : alpha, dérivée, flèche…"
-                  /><button
-                    type="button"
-                    class="icon-button"
-                    id="palette-clear"
-                    aria-label="Effacer la recherche"
-                    hidden
-                  >
-                    ×
-                  </button>
-                </div>
-                <div
-                  id="palette-categories"
-                  class="category-tabs"
-                  role="group"
-                  aria-label="Familles de symboles"
-                ></div>
-                <p id="science-note" class="tool-note" hidden>
-                  Modèles chimiques en notation standard. Pas encore de
-                  structures moléculaires ni de syntaxe mhchem.
-                </p>
-                <p id="palette-count" class="palette-count" role="status"></p>
-                <div id="palette-grid" class="symbol-grid"></div>
-                <button id="palette-more" class="button" type="button">
-                  Afficher davantage
-                </button>
-              </section>
-              <div class="source-wrap">
-                <label for="source" class="sr-only">Source</label
-                ><textarea
-                  id="source"
-                  spellcheck="false"
-                  autocapitalize="off"
-                  autocomplete="off"
-                  autocorrect="off"
-                  aria-describedby="source-help"
-                  maxlength="50000"
-                ></textarea>
-                <ul
-                  class="suggestions"
-                  id="suggestions"
-                  aria-label="Suggestions de commandes"
-                  hidden
-                ></ul>
-              </div>
-              <div class="editor-foot">
-                <span id="source-help"
-                  >Une commande commence par \ · Tab pour compléter</span
-                ><span id="character-count">0 car.</span>
-              </div>
-            </section>
-            <section class="preview-pane" aria-labelledby="preview-heading">
-              <div class="pane-heading">
-                <h2 id="preview-heading">
-                  Aperçu <span class="live-label">en direct</span>
-                </h2>
-                <div
-                  class="zoom-controls"
-                  role="group"
-                  aria-label="Taille de l’aperçu"
-                >
-                  <button
-                    type="button"
-                    class="icon-button"
-                    id="zoom-out"
-                    aria-label="Réduire l’aperçu"
-                  >
-                    −</button
-                  ><output id="zoom-value">100 %</output
-                  ><button
-                    type="button"
-                    class="icon-button"
-                    id="zoom-in"
-                    aria-label="Agrandir l’aperçu"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-              <div class="preview-surface" id="preview-surface">
-                <div id="preview" class="formula-preview"></div>
-                <div class="coach" id="coach" hidden>
-                  <span aria-hidden="true">✎</span>
-                  <p>Astuce : touchez un nombre de l’aperçu pour le modifier ici.</p>
-                  <button type="button" class="icon-button" id="coach-close" aria-label="Fermer l’astuce">×</button>
-                </div>
-                <div class="preview-caption" id="preview-caption">
-                  La beauté d’une idée, dans sa forme la plus simple.
-                </div>
-              </div>
-              <div class="preview-foot">
-                <span id="render-status" role="status">Prêt à écrire</span
-                ><span class="complete-badge" id="complete-badge" role="status" hidden
-                  >✓ Formule complète</span
-                ><button
-                  type="button"
-                  class="button quiet small"
-                  id="preview-edit"
-                  title="Ou cliquez directement sur un numérateur, un dénominateur ou une racine"
-                  hidden
-                >
-                  Modifier dans l’aperçu
-                </button
-                ><button type="button" class="button quiet small" id="copy">
-                  Copier la source
-                </button>
-              </div>
-            </section>
-          </div>
-          <section
-            class="diagnostics"
-            id="diagnostics"
-            aria-labelledby="diagnostics-heading"
-            hidden
-          >
-            <h2 id="diagnostics-heading">Quelques détails à vérifier</h2>
-            <ul id="error-list"></ul>
-          </section>
-          <div class="workspace-note">
-            <span>Un espace pour réfléchir, pas pour configurer.</span
-            ><button type="button" class="text-button" data-help>
-              Raccourcis et aide
-            </button>
-          </div>
-        </main>
-        <footer class="app-footer">
-          <span>CONÇU POUR LES ESPRITS CURIEUX</span
-          ><span>Rendu local · Aucune formule envoyée à un serveur</span>
-        </footer>
-      </div>
+        </section>
+      </main>
     </div>
     <div class="toast" id="toast" role="status" hidden></div>
-    <dialog id="library-dialog" aria-labelledby="library-title">
+    <dialog autofocus tabindex="-1" id="library-dialog" aria-labelledby="library-title">
       <div class="dialog-head">
         <div>
-          <p class="eyebrow">UN POINT DE DÉPART</p>
           <h2 id="library-title">La bibliothèque</h2>
         </div>
         <button
@@ -366,9 +128,7 @@
           class="icon-button"
           data-close
           aria-label="Fermer la bibliothèque"
-        >
-          ×
-        </button>
+        ><svg class="icon" aria-hidden="true"><use href="#i-close" /></svg></button>
       </div>
       <p>
         Choisissez une idée, puis faites-la vôtre. Votre contenu actuel pourra
@@ -383,7 +143,7 @@
       />
       <div id="examples" class="examples-grid"></div>
     </dialog>
-    <dialog id="help-dialog" aria-labelledby="help-title">
+    <dialog autofocus tabindex="-1" id="help-dialog" aria-labelledby="help-title">
       <div class="dialog-head">
         <h2 id="help-title">Le guide express</h2>
         <button
@@ -391,15 +151,14 @@
           class="icon-button"
           data-close
           aria-label="Fermer le guide"
-        >
-          ×
-        </button>
+        ><svg class="icon" aria-hidden="true"><use href="#i-close" /></svg></button>
       </div>
       <h3>Formule</h3>
       <p>
-        Écrivez une formule ou utilisez la barre de symboles. Une sélection est
-        insérée dans la structure choisie. Tapez <code>\fra</code>, puis Tab
-        pour insérer une fraction.
+        En haut, la formule. Touchez un nombre pour le changer. Au milieu, son
+        code : vous pouvez l’écrire ou l’ignorer. En bas, le clavier de maths :
+        touchez un symbole, il se place dans la case entourée. La flèche passe à
+        la case suivante.
       </p>
       <h3>Document</h3>
       <p>
@@ -443,23 +202,21 @@
         toutes les commandes.
       </p>
     </dialog>
-    <dialog id="export-dialog" aria-labelledby="export-title">
+    <dialog autofocus tabindex="-1" id="export-dialog" aria-labelledby="export-title">
       <div class="dialog-head">
-        <h2 id="export-title">Emporter votre travail</h2>
+        <h2 id="export-title">Exporter</h2>
         <button
           type="button"
           class="icon-button"
           data-close
           aria-label="Fermer les exports"
-        >
-          ×
-        </button>
+        ><svg class="icon" aria-hidden="true"><use href="#i-close" /></svg></button>
       </div>
       <div class="export-options">
         <button type="button" data-export="source">
-          <strong>Source</strong
+          <strong>Fichier du code</strong
           ><span
-            >Source pour une formule, texte structuré pour un document</span
+            >.tex pour une formule, .md pour un document</span
           ></button
         ><button type="button" data-export="mathml" id="export-mathml">
           <strong>Balisage natif</strong
@@ -484,7 +241,7 @@
         hidden
       />
     </dialog>
-    <dialog id="matrix-dialog" aria-labelledby="matrix-title">
+    <dialog autofocus tabindex="-1" id="matrix-dialog" aria-labelledby="matrix-title">
       <div class="dialog-head">
         <h2 id="matrix-title">Construire une matrice</h2>
         <button
@@ -492,9 +249,7 @@
           class="icon-button"
           data-close
           aria-label="Fermer la matrice"
-        >
-          ×
-        </button>
+        ><svg class="icon" aria-hidden="true"><use href="#i-close" /></svg></button>
       </div>
       <div class="matrix-settings">
         <label
@@ -543,11 +298,24 @@
         </button>
       </div>
     </dialog>
-    <dialog id="molecule-dialog" aria-labelledby="molecule-title">
+    <dialog autofocus tabindex="-1" id="molecule-dialog" class="full" aria-labelledby="molecule-title">
       <div class="dialog-head">
-        <h2 id="molecule-title">Dessiner une molécule</h2>
-        <button type="button" class="icon-button" data-close aria-label="Fermer le dessin">×</button>
+        <h2 id="molecule-title">Molécule</h2>
+        <select id="molecule-template" aria-label="Partir d’un modèle">
+          <option value="">Modèles</option>
+          <option value="benzene">Benzène</option>
+          <option value="ethanol">Éthanol</option>
+          <option value="acetic">Acide éthanoïque</option>
+          <option value="water">Eau</option>
+        </select>
+        <button type="button" class="icon-button" data-close aria-label="Fermer le dessin"><svg class="icon" aria-hidden="true"><use href="#i-close" /></svg></button>
       </div>
+      <div class="molecule-stage">
+        <svg id="molecule-board" role="img" aria-label="Zone de dessin. La description ci-dessous permet de tout faire au clavier."></svg>
+        <p id="molecule-empty">Touchez ici pour poser un premier atome.</p>
+      </div>
+      <p id="molecule-hint" class="molecule-hint" aria-live="polite"></p>
+      <div class="molecule-group"><span>Poser</span>
       <div class="molecule-tools" id="molecule-tools" role="group" aria-label="Atomes et outils">
           <button type="button" data-kind="atom" data-value="C" aria-pressed="true" aria-label="Carbone" title="Carbone">C</button>
           <button type="button" data-kind="atom" data-value="H" aria-pressed="false" aria-label="Hydrogène" title="Hydrogène">H</button>
@@ -561,50 +329,40 @@
           <button type="button" data-kind="atom" data-value="I" aria-pressed="false" aria-label="Iode" title="Iode">I</button>
           <button type="button" data-kind="charge" data-value="+" aria-pressed="false" aria-label="Charge positive" title="Charge positive">+</button>
           <button type="button" data-kind="charge" data-value="-" aria-pressed="false" aria-label="Charge négative" title="Charge négative">−</button>
-          <button type="button" data-kind="ring" data-value="" data-size="6" aria-pressed="false" aria-label="Cycle à six" title="Cycle à six">⬡</button>
-          <button type="button" data-kind="ring" data-value="" data-size="6" data-alternate="1" aria-pressed="false" aria-label="Cycle benzénique" title="Cycle benzénique">⌬</button>
-          <button type="button" data-kind="ring" data-value="" data-size="5" aria-pressed="false" aria-label="Cycle à cinq" title="Cycle à cinq">⬠</button>
-          <button type="button" data-kind="erase" data-value="" aria-pressed="false" aria-label="Effacer un atome ou une liaison" title="Effacer un atome ou une liaison">Gomme</button>
+          <button type="button" data-kind="ring" data-value="" data-size="6" aria-pressed="false" aria-label="Cycle à six" title="Cycle à six"><svg class="icon" viewBox="0 0 24 24"><path d="m12 3 7.800 4.500v9L12 21l-7.800-4.500v-9z"/></svg></button>
+          <button type="button" data-kind="ring" data-value="" data-size="6" data-alternate="1" aria-pressed="false" aria-label="Cycle benzénique" title="Cycle benzénique"><svg class="icon" viewBox="0 0 24 24"><path d="m12 3 7.800 4.500v9L12 21l-7.800-4.500v-9zM7.500 9.500v5M12 17.500l4.500-2.600M12 6.500l4.500 2.600"/></svg></button>
+          <button type="button" data-kind="ring" data-value="" data-size="5" aria-pressed="false" aria-label="Cycle à cinq" title="Cycle à cinq"><svg class="icon" viewBox="0 0 24 24"><path d="m12 3.500 8.500 6.200-3.200 10H6.700l-3.200-10z"/></svg></button>
+          <button type="button" data-kind="erase" data-value="" aria-pressed="false" aria-label="Effacer un atome ou une liaison" title="Effacer un atome ou une liaison"><svg class="icon" aria-hidden="true"><use href="#i-back" /></svg></button>
       </div>
+      </div>
+      <div class="molecule-group"><span>Liaison</span>
       <div class="molecule-tools" id="molecule-bonds" role="group" aria-label="Type de liaison">
-          <button type="button" data-mark="-" aria-pressed="true" title="Liaison simple" aria-label="Liaison simple">–</button>
-          <button type="button" data-mark="=" aria-pressed="false" title="Liaison double" aria-label="Liaison double">=</button>
-          <button type="button" data-mark="#" aria-pressed="false" title="Liaison triple" aria-label="Liaison triple">≡</button>
-          <button type="button" data-mark="&gt;" aria-pressed="false" title="Coin plein, vers l’avant" aria-label="Coin plein, vers l’avant">◀</button>
-          <button type="button" data-mark="&lt;" aria-pressed="false" title="Coin hachuré, vers l’arrière" aria-label="Coin hachuré, vers l’arrière">┅</button>
+          <button type="button" data-mark="-" aria-pressed="true" title="Liaison simple" aria-label="Liaison simple"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12h16"/></svg></button>
+          <button type="button" data-mark="=" aria-pressed="false" title="Liaison double" aria-label="Liaison double"><svg class="icon" viewBox="0 0 24 24"><path d="M4 9.500h16M4 14.500h16"/></svg></button>
+          <button type="button" data-mark="#" aria-pressed="false" title="Liaison triple" aria-label="Liaison triple"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7.500h16M4 12h16M4 16.500h16"/></svg></button>
+          <button type="button" data-mark="&gt;" aria-pressed="false" title="Coin plein, vers l’avant" aria-label="Coin plein, vers l’avant"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12 20 7v10z" fill="currentColor"/></svg></button>
+          <button type="button" data-mark="&lt;" aria-pressed="false" title="Coin hachuré, vers l’arrière" aria-label="Coin hachuré, vers l’arrière"><svg class="icon" viewBox="0 0 24 24"><path d="M5 11.500v1M9 10.500v3M13 9.500v5M17 8.500v7M20 7.500v9"/></svg></button>
       </div>
-      <div class="molecule-stage">
-        <svg id="molecule-board" role="img" aria-label="Zone de dessin. La description ci-dessous permet de tout faire au clavier."></svg>
-        <p id="molecule-empty">Touchez pour poser un atome, puis tirez pour ajouter une liaison.</p>
       </div>
-      <label class="tool-setting" for="molecule-source"
-        >Description (modifiable au clavier)<input id="molecule-source" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="\molecule{C 0 0, O 1 0 | 1-2}"
-      /></label>
+      <details class="molecule-code"><summary>Écrire au clavier</summary>
+        <label class="tool-setting" for="molecule-source">Description<input id="molecule-source" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="\molecule{C 0 0, O 1 0 | 1-2}" /></label>
+      </details>
       <p id="molecule-error" role="alert"></p>
       <div class="dialog-actions">
-        <select id="molecule-template" aria-label="Partir d’un modèle">
-          <option value="">Modèles</option>
-          <option value="benzene">Benzène</option>
-          <option value="ethanol">Éthanol</option>
-          <option value="acetic">Acide éthanoïque</option>
-          <option value="water">Eau</option>
-        </select>
         <button type="button" class="button" id="molecule-undo">Annuler</button>
-        <button type="button" class="button" id="molecule-clear">Tout effacer</button>
+        <button type="button" class="button" id="molecule-clear">Vider</button>
         <button type="button" class="button primary" id="molecule-insert">Insérer la molécule</button>
       </div>
     </dialog>
-    <dialog id="appearance-dialog" aria-labelledby="appearance-title">
+    <dialog autofocus tabindex="-1" id="appearance-dialog" aria-labelledby="appearance-title">
       <div class="dialog-head">
-        <h2 id="appearance-title">Présentation</h2>
+        <h2 id="appearance-title">Couleur et taille</h2>
         <button
           type="button"
           class="icon-button"
           data-close
           aria-label="Fermer la présentation"
-        >
-          ×
-        </button>
+        ><svg class="icon" aria-hidden="true"><use href="#i-close" /></svg></button>
       </div>
       <label class="tool-setting" for="formula-color"
         >Couleur à insérer<input
@@ -631,10 +389,10 @@
       <p>
         La couleur insérée fait partie de la source. La taille et le fond concernent
         seulement l’aperçu et ne sont pas sauvegardés. L’impression garde un
-        fond blanc. Les styles de texte sont dans « Tous les symboles ».
+        fond blanc. Les styles de texte sont dans le clavier de maths.
       </p>
     </dialog>
-    <dialog id="document-import-dialog" aria-labelledby="document-import-title">
+    <dialog autofocus tabindex="-1" id="document-import-dialog" aria-labelledby="document-import-title">
       <div class="dialog-head">
         <h2 id="document-import-title">Importer un document</h2>
         <button
@@ -642,9 +400,7 @@
           class="icon-button"
           data-close
           aria-label="Fermer l’import"
-        >
-          ×
-        </button>
+        ><svg class="icon" aria-hidden="true"><use href="#i-close" /></svg></button>
       </div>
       <p>
         Markdown, texte, formule, sauvegarde JSON ou PDF avec texte

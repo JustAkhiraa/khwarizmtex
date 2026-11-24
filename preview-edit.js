@@ -1,6 +1,7 @@
 // Saisie directe dans l'aperçu : un clic sur un numérateur, un dénominateur ou
 // une racine ouvre un petit champ à cet endroit ; chaque frappe réécrit la
 // portion exacte de la source, puis l'aperçu, la sauvegarde et l'historique suivent.
+import { eraseAt } from "./keys.js";
 import { findSlots, partText, ROLE_NAMES } from "./slots.js";
 
 const child = (box, selector) =>
@@ -70,6 +71,7 @@ function balanced(text) {
 export function bindPreviewEditor({
   preview,
   surface,
+  scroller,
   source,
   engine,
   getMode,
@@ -91,7 +93,36 @@ export function bindPreviewEditor({
   input.setAttribute("autocapitalize", "off");
   input.setAttribute("autocorrect", "off");
   input.setAttribute("enterkeyhint", "done");
-  surface.append(input);
+  // Ordinateur : le champ flotte près de la zone. Téléphone : une barre fixe, sous la
+  // formule, qui ne la recouvre jamais, avec les boutons qui remplacent Tab et Échap.
+  const box = document.createElement("div");
+  box.className = "inplace-box";
+  box.hidden = true;
+  const name = document.createElement("span");
+  name.className = "inplace-name";
+  name.setAttribute("aria-hidden", "true");
+  function button(label, icon, action) {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "icon-button inplace-key";
+    el.setAttribute("aria-label", label);
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "icon");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    use.setAttribute("href", "#i-" + icon);
+    svg.append(use);
+    el.append(svg);
+    el.addEventListener("mousedown", (event) => event.preventDefault());
+    el.addEventListener("click", action);
+    return el;
+  }
+  box.append(
+    name,
+    input,
+    button("Partie suivante", "next", () => step(1)),
+    button("Terminer", "check", () => close(false)),
+  );
+  surface.append(box);
 
   let zones = [];
   let current = null; // clé "kind:rang:partie" de la zone en cours
@@ -153,6 +184,7 @@ export function bindPreviewEditor({
       });
     }
     zones.sort((a, b) => a.part.start - b.part.start);
+    target();
     launcher.hidden = zones.length === 0;
     if (zones.length) coach();
     if (current) {
@@ -160,6 +192,22 @@ export function bindPreviewEditor({
       if (!zone) close(false);
       else show(zone, false);
     }
+  }
+  /** Montre dans la formule la case où tombera le prochain symbole. */
+  function target() {
+    for (const el of preview.querySelectorAll(".khw-target")) el.classList.remove("khw-target");
+    if (current) return;
+    const at = source.selectionStart;
+    const zone = zones
+      .filter((z) => z.part.start <= at && source.selectionEnd <= z.part.end && source.value.slice(z.part.start, z.part.end) === "□")
+      .pop();
+    zone?.el.classList.add("khw-target");
+  }
+  function step(direction) {
+    const index = zones.findIndex((z) => z.key === current);
+    const next = zones[index + direction];
+    if (next) open(next.key);
+    else close(false);
   }
   function show(zone, focus) {
     for (const el of preview.querySelectorAll(".khw-editing"))
@@ -172,27 +220,29 @@ export function bindPreviewEditor({
     input.setAttribute("aria-label", zone.label);
     input.placeholder = "□";
     input.hidden = false;
-    const box = zone.el.getBoundingClientRect();
+    box.hidden = false;
+    name.textContent = zone.label.replace(/ \d+$/, "");
+    const area = zone.el.getBoundingClientRect();
     const frame = surface.getBoundingClientRect();
-    const width = Math.max(box.width + 16, 88);
+    const width = Math.max(area.width + 16, 88);
     const left = Math.min(
-      Math.max(4, box.left - frame.left + surface.scrollLeft + box.width / 2 - width / 2),
+      Math.max(4, area.left - frame.left + surface.scrollLeft + area.width / 2 - width / 2),
       surface.scrollWidth - width - 4,
     );
-    input.style.width = width + "px";
-    input.style.left = left + "px";
+    box.style.width = width + "px";
+    box.style.left = left + "px";
     // Au-dessus pour le haut d'une structure, dessous pour le bas :
     // le champ ne recouvre jamais l'autre zone de la même fraction.
     const above = ["num", "index", "sup"].includes(zone.part.role);
     const height = input.offsetHeight || 38;
     const top = above
-      ? Math.max(2, box.top - frame.top + surface.scrollTop - height - 6)
-      : box.bottom - frame.top + surface.scrollTop + 6;
-    input.style.top = top + "px";
+      ? Math.max(2, area.top - frame.top + surface.scrollTop - height - 6)
+      : area.bottom - frame.top + surface.scrollTop + 6;
+    box.style.top = top + "px";
     if (focus) {
       input.focus({ preventScroll: true });
       input.select();
-      input.scrollIntoView({ block: "nearest", inline: "nearest" });
+      zone.el.scrollIntoView({ block: "nearest", inline: "nearest" });
     }
   }
   /**
@@ -230,7 +280,7 @@ export function bindPreviewEditor({
   }
   function refuse() {
     notify(
-      "Cette partie ne peut pas être reliée avec certitude à la source : modifiez-la à gauche.",
+      "Cette partie ne peut pas être reliée avec certitude au code : modifiez-la dans le code.",
     );
   }
   function open(key) {
@@ -249,6 +299,7 @@ export function bindPreviewEditor({
   function close(returnFocus) {
     current = null;
     input.hidden = true;
+    box.hidden = true;
     input.classList.remove("invalid");
     for (const el of preview.querySelectorAll(".khw-editing"))
       el.classList.remove("khw-editing");
@@ -310,6 +361,42 @@ export function bindPreviewEditor({
     const after = zones.find((z) => z.part.end >= source.selectionStart);
     open((after || zones[0])?.key);
   });
+  scroller.addEventListener("scroll", () => {
+    const zone = zones.find((z) => z.key === current);
+    if (zone) show(zone, false);
+  });
+  document.addEventListener("selectionchange", () => {
+    if (document.activeElement === source) target();
+  });
+  function type(text, start = input.selectionStart, end = input.selectionEnd) {
+    if (/\\[a-zA-Z]+$/.test(input.value.slice(0, start)) && /^[a-zA-Z]/.test(text)) text = " " + text;
+    const hole = text.indexOf("□");
+    const picked = input.value.slice(start, end);
+    if (hole >= 0 && picked) text = text.replace("□", picked);
+    input.setRangeText(text, start, end, "end");
+    if (hole >= 0 && !picked) input.setSelectionRange(start + hole, start + hole + 1);
+    input.dispatchEvent(new Event("input"));
+    input.focus({ preventScroll: true });
+  }
+  /** Une touche du clavier de maths pendant la saisie dans l'aperçu. */
+  function insertText(text) {
+    if (!current || input.hidden) return false;
+    type(text);
+    return true;
+  }
+  function key(name) {
+    if (!current || input.hidden) return false;
+    if (name === "next") {
+      const hole = input.value.indexOf("□", input.selectionEnd);
+      if (hole >= 0) input.setSelectionRange(hole, hole + 1);
+      else step(1);
+      return true;
+    }
+    const found = eraseAt(input.value, input.selectionStart, input.selectionEnd);
+    if (found?.select) input.setSelectionRange(...found.select);
+    else if (found) type("", ...found.remove);
+    return true;
+  }
   window.addEventListener("resize", () => {
     const zone = zones.find((z) => z.key === current);
     if (zone) show(zone, false);
@@ -318,7 +405,7 @@ export function bindPreviewEditor({
   const COACH = "khwarizm-online-coach";
   let coached = false;
   function coach() {
-    if (coached) return;
+    if (coached || getMode() === "document") return;
     coached = true;
     try {
       if (localStorage.getItem(COACH)) return;
@@ -337,5 +424,5 @@ export function bindPreviewEditor({
   }
   document.getElementById("coach-close").addEventListener("click", dismissCoach);
   input.addEventListener("focus", dismissCoach);
-  return { decorate, close: () => close(false) };
+  return { decorate, target, insertText, key, close: () => close(false) };
 }
