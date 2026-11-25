@@ -463,6 +463,10 @@ textarea {
   .keyboard-open .coach { display: none; }
   /* L'astuce se pose au-dessus de la formule, jamais dessus. */
   .coach { position: static; transform: none; order: -1; flex: none; align-self: center; margin-top: 6px; }
+  .menu { top: auto; bottom: calc(10px + env(safe-area-inset-bottom)); left: 8px; right: 8px; width: auto; max-height: calc(var(--app-height, 100dvh) - 24px); }
+  .menu-veil { background: #0e0c1a80; }
+}
+@media (max-width: 899px), (pointer: coarse) {
   /* Barre de saisie fixe : ni la formule ni le clavier ne la cachent. */
   .inplace-box {
     left: 0 !important;
@@ -482,8 +486,29 @@ textarea {
   .preview-pane:has(.inplace-box:not([hidden])) .preview-surface { margin-bottom: 56px; }
   .preview-pane:has(.inplace-box:not([hidden])) .preview-tools { bottom: 64px; }
   .preview-pane:has(.inplace-box:not([hidden])) #preview-edit { display: none; }
-  .menu { top: auto; bottom: calc(10px + env(safe-area-inset-bottom)); left: 8px; right: 8px; width: auto; max-height: calc(var(--app-height, 100dvh) - 24px); }
-  .menu-veil { background: #0e0c1a80; }
+}
+/* Grand écran tactile, clavier du téléphone ouvert : la formule, le code, une ligne de touches. */
+@media (min-width: 900px) and (pointer: coarse) {
+  .keyboard-open:is([data-writing="source"], [data-writing="inplace"]) :is(.topbar, .tabs-row, .palette-panel, .source-help, .zoom-controls) { display: none; }
+  .keyboard-open .topbar, .keyboard-open .coach { display: none; }
+  .keyboard-open:is([data-writing="source"], [data-writing="inplace"]) .workspace { gap: 6px; padding: 6px 14px; }
+  .keyboard-open:is([data-writing="source"], [data-writing="inplace"]) .workspace:not(.document-mode) {
+    grid-template: "code preview" minmax(0, 1fr) "errors errors" auto "dock dock" auto / minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .keyboard-open[data-writing="inplace"] .workspace:not(.document-mode) .preview-pane { grid-column: 1 / -1; }
+  .keyboard-open:is([data-writing="source"], [data-writing="inplace"]) .workspace.document-mode {
+    grid-template: "code preview" minmax(0, 1fr) "errors errors" auto "dock dock" auto / minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .keyboard-open .character-count { display: none; }
+  .keyboard-open[data-writing="inplace"] .editor-pane { display: none; }
+  .keyboard-open .preview-surface { padding: 4px 16px; }
+  .keyboard-open .formula-preview { padding: 2px 4px; }
+  .keyboard-open[data-writing="search"] .editor-pane { display: none; }
+  .keyboard-open[data-writing="search"] .workspace:not(.document-mode) { grid-template-rows: minmax(0, 1fr) auto auto; }
+}
+/* Téléphone pliant ouvert : la pliure sépare le clavier de maths de la formule. */
+@media (min-width: 900px) and (max-width: 1000px) and (min-height: 501px) and (pointer: coarse) {
+  .workspace:not(.document-mode) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
 /* Téléphone couché : deux colonnes, le clavier à droite. */
 @media (max-width: 899px) and (orientation: landscape), (max-width: 959px) and (max-height: 500px) {
@@ -501,8 +526,8 @@ textarea {
 @media (max-width: 899px) and (orientation: portrait) {
   .workspace:not(.document-mode) textarea#source { height: 58px; }
 }
-@media (max-width: 899px) and (max-height: 620px) and (orientation: portrait) {
-  .workspace:not(.document-mode) textarea#source { height: 34px; }
+@media (max-width: 899px) and (max-height: 565px) and (orientation: portrait) {
+  .workspace:not(.document-mode) textarea#source { height: 30px; }
 }
 /* Petit écran debout : la place va à la formule. */
 @media (max-width: 899px) and (max-height: 700px) and (orientation: portrait) {
