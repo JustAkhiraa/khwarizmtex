@@ -23,9 +23,20 @@ export function bindLayout() {
     const writing = field?.matches?.("textarea, input:not([type=range], [type=color], [type=file])");
     root.classList.toggle("keyboard-open", Boolean(writing) && height < tallest - 140);
   }
-  view?.addEventListener("resize", measure);
+  // Plier l'appareil change d'écran : Safari garde alors une hauteur fausse tant
+  // que le clavier reste ouvert. Le refermer la remet juste ; tourner n'y touche pas.
+  const angle = () => screen.orientation?.angle ?? 0;
+  let seen = [innerWidth, angle()];
+  function resized() {
+    const folded = innerWidth !== seen[0] && angle() === seen[1];
+    seen = [innerWidth, angle()];
+    const field = document.activeElement;
+    if (folded && coarse() && field?.matches?.("textarea, input")) field.blur();
+    measure();
+  }
+  view?.addEventListener("resize", resized);
   view?.addEventListener("scroll", measure);
-  addEventListener("resize", measure);
+  addEventListener("resize", resized);
   const places = { source: "source", "inplace-input": "inplace", "palette-search": "search" };
   document.addEventListener("focusin", (event) => {
     root.dataset.writing = places[event.target.id] || "";

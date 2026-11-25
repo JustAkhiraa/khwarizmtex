@@ -48,6 +48,10 @@
 .pad-key { width: 100%; min-width: 0; height: 52px; font-family: "Khwarizm Text", Georgia, serif; }
 .pad-key:not(.digit):not(.letter) { background: var(--key-strong); }
 .pad-key.letter { font-style: italic; }
+@media (min-width: 900px) and (pointer: coarse) {
+  /* Le pavé occupe la hauteur disponible, sans défiler. */
+  .pad-key { height: clamp(44px, calc((var(--app-height, 100dvh) - 220px) / 4), 78px); }
+}
 @media (min-width: 900px) and (min-height: 501px) { #palette-open { display: none; } }
 @media (max-width: 899px) {
   .dock { gap: 6px; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); background: var(--bg); }
